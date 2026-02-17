@@ -16,6 +16,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # Brand Management Operations
@@ -37,13 +38,13 @@ async def list_brands(ctx: Context) -> dict:
         brands, _, err = await client.list_brands()
         if err:
             logger.error(f"Okta API error while listing brands: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved {len(brands) if brands else 0} brands")
         return success_response(brands)
     except Exception as e:
         logger.error(f"Exception while listing brands: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -57,6 +58,10 @@ async def get_brand(brand_id: str, ctx: Context) -> dict:
         Dict with success status and brand details.
     """
     logger.info(f"Getting brand with ID: {brand_id}")
+
+    valid, err_msg = validate_okta_id(brand_id, "brand_id")
+    if not valid:
+        return error_response(err_msg)
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -65,13 +70,13 @@ async def get_brand(brand_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved brand: {brand_id}")
         return success_response(brand)
     except Exception as e:
         logger.error(f"Exception while getting brand {brand_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -100,13 +105,13 @@ async def update_brand(brand_id: str, ctx: Context, brand_config: Optional[Dict[
 
         if err:
             logger.error(f"Okta API error while updating brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated brand: {brand_id}")
         return success_response(brand)
     except Exception as e:
         logger.error(f"Exception while updating brand {brand_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -133,13 +138,13 @@ async def list_brand_themes(brand_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while listing themes for brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved {len(themes) if themes else 0} themes for brand {brand_id}")
         return success_response(themes)
     except Exception as e:
         logger.error(f"Exception while listing themes for brand {brand_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -162,13 +167,13 @@ async def get_brand_theme(brand_id: str, theme_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting theme {theme_id} for brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved theme {theme_id} for brand {brand_id}")
         return success_response(theme)
     except Exception as e:
         logger.error(f"Exception while getting theme {theme_id} for brand {brand_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -204,13 +209,13 @@ async def update_brand_theme(
 
         if err:
             logger.error(f"Okta API error while updating theme {theme_id} for brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated theme {theme_id} for brand {brand_id}")
         return success_response(theme)
     except Exception as e:
         logger.error(f"Exception while updating theme {theme_id} for brand {brand_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -248,7 +253,7 @@ async def upload_brand_logo(brand_id: str, theme_id: str, logo_file_path: str, c
 
             if err:
                 logger.error(f"Okta API error while uploading logo for theme {theme_id}: {err}")
-                return error_response(str(err))
+                return error_response(sanitize_error(err))
 
             logger.info(f"Successfully uploaded logo for theme {theme_id} in brand {brand_id}")
             return success_response(result)
@@ -259,7 +264,7 @@ async def upload_brand_logo(brand_id: str, theme_id: str, logo_file_path: str, c
         logger.error(
             f"Exception while uploading logo for theme {theme_id} in brand {brand_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -292,7 +297,7 @@ async def upload_brand_favicon(brand_id: str, theme_id: str, favicon_file_path: 
 
             if err:
                 logger.error(f"Okta API error while uploading favicon for theme {theme_id}: {err}")
-                return error_response(str(err))
+                return error_response(sanitize_error(err))
 
             logger.info(f"Successfully uploaded favicon for theme {theme_id} in brand {brand_id}")
             return success_response(result)
@@ -303,7 +308,7 @@ async def upload_brand_favicon(brand_id: str, theme_id: str, favicon_file_path: 
         logger.error(
             f"Exception while uploading favicon for theme {theme_id} in brand {brand_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -339,7 +344,7 @@ async def get_email_template(brand_id: str, template_name: str, ctx: Context) ->
 
         if err:
             logger.error(f"Okta API error while getting email template '{template_name}' for brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved email template '{template_name}' for brand {brand_id}")
         return success_response(template)
@@ -347,7 +352,7 @@ async def get_email_template(brand_id: str, template_name: str, ctx: Context) ->
         logger.error(
             f"Exception while getting email template '{template_name}' for brand {brand_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -379,7 +384,7 @@ async def update_email_template(
 
         if err:
             logger.error(f"Okta API error while updating email template '{template_name}' for brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated email template '{template_name}' for brand {brand_id}")
         return success_response(template)
@@ -387,7 +392,7 @@ async def update_email_template(
         logger.error(
             f"Exception while updating email template '{template_name}' for brand {brand_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -414,13 +419,13 @@ async def get_signin_page(brand_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting sign-in page for brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved sign-in page customization for brand {brand_id}")
         return success_response(page)
     except Exception as e:
         logger.error(f"Exception while getting sign-in page for brand {brand_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -449,10 +454,10 @@ async def update_signin_page(brand_id: str, ctx: Context, page_config: Optional[
 
         if err:
             logger.error(f"Okta API error while updating sign-in page for brand {brand_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated sign-in page customization for brand {brand_id}")
         return success_response(page)
     except Exception as e:
         logger.error(f"Exception while updating sign-in page for brand {brand_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

@@ -11,6 +11,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # Roles Management Operations
@@ -65,13 +66,13 @@ async def list_user_roles(user_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while listing roles for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved {len(roles) if roles else 0} roles for user {user_id}")
         return success_response(roles if roles else [])
     except Exception as e:
         logger.error(f"Exception while listing roles for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -96,13 +97,13 @@ async def list_group_roles(group_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while listing roles for group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved {len(roles) if roles else 0} roles for group {group_id}")
         return success_response(roles if roles else [])
     except Exception as e:
         logger.error(f"Exception while listing roles for group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -131,13 +132,13 @@ async def assign_role_to_user(user_id: str, role_type: str, ctx: Context) -> dic
 
         if err:
             logger.error(f"Okta API error while assigning role '{role_type}' to user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully assigned role '{role_type}' to user {user_id}")
         return success_response(role)
     except Exception as e:
         logger.error(f"Exception while assigning role to user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -163,13 +164,13 @@ async def unassign_role_from_user(user_id: str, role_id: str, ctx: Context) -> d
 
         if err:
             logger.error(f"Okta API error while unassigning role {role_id} from user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully unassigned role {role_id} from user {user_id}")
         return success_response({"message": f"Role {role_id} has been removed from user {user_id}."})
     except Exception as e:
         logger.error(f"Exception while unassigning role from user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -198,13 +199,13 @@ async def assign_role_to_group(group_id: str, role_type: str, ctx: Context) -> d
 
         if err:
             logger.error(f"Okta API error while assigning role '{role_type}' to group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully assigned role '{role_type}' to group {group_id}")
         return success_response(role)
     except Exception as e:
         logger.error(f"Exception while assigning role to group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -230,13 +231,13 @@ async def unassign_role_from_group(group_id: str, role_id: str, ctx: Context) ->
 
         if err:
             logger.error(f"Okta API error while unassigning role {role_id} from group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully unassigned role {role_id} from group {group_id}")
         return success_response({"message": f"Role {role_id} has been removed from group {group_id}."})
     except Exception as e:
         logger.error(f"Exception while unassigning role from group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -272,7 +273,7 @@ async def list_user_role_targets(
 
         if err:
             logger.error(f"Okta API error while listing {target_type} targets for role {role_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(
             f"Successfully retrieved {len(targets) if targets else 0} {target_type} targets for role {role_id}"
@@ -280,7 +281,7 @@ async def list_user_role_targets(
         return success_response(targets if targets else [])
     except Exception as e:
         logger.error(f"Exception while listing role targets: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -318,13 +319,13 @@ async def add_user_role_target(
 
         if err:
             logger.error(f"Okta API error while adding {target_type} target {target_id} to role {role_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully added {target_type} target {target_id} to role {role_id}")
         return success_response({"message": f"{target_type} target {target_id} has been added to role {role_id}."})
     except Exception as e:
         logger.error(f"Exception while adding role target: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -364,10 +365,10 @@ async def remove_user_role_target(
 
         if err:
             logger.error(f"Okta API error while removing {target_type} target {target_id} from role {role_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully removed {target_type} target {target_id} from role {role_id}")
         return success_response({"message": f"{target_type} target {target_id} has been removed from role {role_id}."})
     except Exception as e:
         logger.error(f"Exception while removing role target: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

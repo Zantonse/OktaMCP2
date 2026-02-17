@@ -216,6 +216,7 @@ class TestAuthManagerExceptions:
         monkeypatch.delenv("OKTA_ORG_URL", raising=False)
         monkeypatch.delenv("OKTA_CLIENT_ID", raising=False)
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         with pytest.raises(RuntimeError, match="OKTA_ORG_URL and OKTA_CLIENT_ID must be set"):
             OktaAuthManager()
 
@@ -225,6 +226,7 @@ class TestAuthManagerExceptions:
         monkeypatch.setenv("OKTA_CLIENT_ID", "test_client_id")
         import httpx
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         manager = OktaAuthManager()
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(
@@ -240,6 +242,7 @@ class TestAuthManagerExceptions:
         monkeypatch.setenv("OKTA_PRIVATE_KEY", "-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----")
         monkeypatch.setenv("OKTA_KEY_ID", "test_key_id")
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         manager = OktaAuthManager()
         manager._browserless_authenticate = AsyncMock(return_value=None)
         with pytest.raises(RuntimeError, match="Browserless authentication failed"):
@@ -250,11 +253,17 @@ class TestAuthManagerExceptions:
         monkeypatch.setenv("OKTA_ORG_URL", "https://test.okta.com")
         monkeypatch.setenv("OKTA_CLIENT_ID", "test_client_id")
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         manager = OktaAuthManager()
-        manager._initiate_device_authorization = AsyncMock(return_value={
-            "verification_uri_complete": "https://test.okta.com/activate",
-            "device_code": "test", "interval": 1, "expires_in": 1, "start_time": 0,
-        })
+        manager._initiate_device_authorization = AsyncMock(
+            return_value={
+                "verification_uri_complete": "https://test.okta.com/activate",
+                "device_code": "test",
+                "interval": 1,
+                "expires_in": 1,
+                "start_time": 0,
+            }
+        )
         manager._poll_for_token = AsyncMock(return_value=None)
         with patch("webbrowser.open"):
             with pytest.raises(RuntimeError, match="Authentication failed"):
@@ -271,6 +280,7 @@ class TestJsonDecodeHandling:
         monkeypatch.setenv("OKTA_PRIVATE_KEY", "-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----")
         monkeypatch.setenv("OKTA_KEY_ID", "test_key_id")
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.side_effect = json.JSONDecodeError("Expecting value", "<html>Error</html>", 0)
@@ -287,6 +297,7 @@ class TestJsonDecodeHandling:
         monkeypatch.setenv("OKTA_ORG_URL", "https://test.okta.com")
         monkeypatch.setenv("OKTA_CLIENT_ID", "test_client_id")
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.side_effect = json.JSONDecodeError("Expecting value", "<html>Error</html>", 0)
@@ -304,13 +315,19 @@ class TestJsonDecodeHandling:
         monkeypatch.setenv("OKTA_CLIENT_ID", "test_client_id")
         import time as time_module
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.side_effect = json.JSONDecodeError("Expecting value", "<html>", 0)
         with patch("httpx.AsyncClient") as mock_client:
             mock_client.return_value.__aenter__.return_value.post = AsyncMock(return_value=mock_response)
             manager = OktaAuthManager()
-            device_data = {"device_code": "test_code", "interval": 0.1, "expires_in": 0.5, "start_time": time_module.time()}
+            device_data = {
+                "device_code": "test_code",
+                "interval": 0.1,
+                "expires_in": 0.5,
+                "start_time": time_module.time(),
+            }
             result = await manager._poll_for_token(device_data)
         assert result is None
 
@@ -323,6 +340,7 @@ class TestKeyringErrorHandling:
         monkeypatch.setenv("OKTA_PRIVATE_KEY", "-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----")
         monkeypatch.setenv("OKTA_KEY_ID", "test_key_id")
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"access_token": "test_token"}
@@ -341,6 +359,7 @@ class TestKeyringErrorHandling:
         monkeypatch.setenv("OKTA_ORG_URL", "https://test.okta.com")
         monkeypatch.setenv("OKTA_CLIENT_ID", "test_client_id")
         from okta_mcp_server.utils.auth.auth_manager import OktaAuthManager
+
         mock_response = MagicMock()
         mock_response.status_code = 200
         mock_response.json.return_value = {"access_token": "new_token", "refresh_token": "new_refresh"}

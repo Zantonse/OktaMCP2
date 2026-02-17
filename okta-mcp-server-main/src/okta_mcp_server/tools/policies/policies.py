@@ -14,6 +14,7 @@ from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.pagination import extract_after_cursor
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 
 @mcp.tool()
@@ -43,13 +44,9 @@ async def list_policies(
     logger.debug(f"Type: '{type}', Status: '{status}', Q: '{q}', limit: {limit}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -68,7 +65,7 @@ async def list_policies(
 
         if err:
             logger.error(f"Error listing policies: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not policies:
             logger.info("No policies found")
@@ -83,7 +80,7 @@ async def list_policies(
 
     except Exception as e:
         logger.error(f"Exception listing policies: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -104,13 +101,13 @@ async def get_policy(ctx: Context, policy_id: str) -> dict:
 
         if err:
             logger.error(f"Error getting policy {policy_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response(policy.as_dict() if policy else None)
 
     except Exception as e:
         logger.error(f"Exception getting policy: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -139,13 +136,13 @@ async def create_policy(ctx: Context, policy_data: Dict[str, Any]) -> dict:
 
         if err:
             logger.error(f"Error creating policy: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response(policy.as_dict() if policy else None)
 
     except Exception as e:
         logger.error(f"Exception creating policy: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -167,13 +164,13 @@ async def update_policy(ctx: Context, policy_id: str, policy_data: Dict[str, Any
 
         if err:
             logger.error(f"Error updating policy {policy_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response(policy.as_dict() if policy else None)
 
     except Exception as e:
         logger.error(f"Exception updating policy: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -194,13 +191,13 @@ async def delete_policy(ctx: Context, policy_id: str) -> dict:
 
         if err:
             logger.error(f"Error deleting policy {policy_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response({"message": f"Policy {policy_id} deleted successfully"})
 
     except Exception as e:
         logger.error(f"Exception deleting policy: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -221,13 +218,13 @@ async def activate_policy(ctx: Context, policy_id: str) -> dict:
 
         if err:
             logger.error(f"Error activating policy {policy_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response({"message": f"Policy {policy_id} activated successfully"})
 
     except Exception as e:
         logger.error(f"Exception activating policy: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -248,13 +245,13 @@ async def deactivate_policy(ctx: Context, policy_id: str) -> dict:
 
         if err:
             logger.error(f"Error deactivating policy {policy_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response({"message": f"Policy {policy_id} deactivated successfully"})
 
     except Exception as e:
         logger.error(f"Exception deactivating policy: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -275,7 +272,7 @@ async def list_policy_rules(ctx: Context, policy_id: str) -> dict:
 
         if err:
             logger.error(f"Error listing policy rules: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not rules:
             logger.info("No policy rules found")
@@ -291,7 +288,7 @@ async def list_policy_rules(ctx: Context, policy_id: str) -> dict:
 
     except Exception as e:
         logger.error(f"Exception listing policy rules: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -313,13 +310,13 @@ async def get_policy_rule(ctx: Context, policy_id: str, rule_id: str) -> dict:
 
         if err:
             logger.error(f"Error getting policy rule: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response(rule.as_dict() if rule else None)
 
     except Exception as e:
         logger.error(f"Exception getting policy rule: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -346,13 +343,13 @@ async def create_policy_rule(ctx: Context, policy_id: str, rule_data: Dict[str, 
 
         if err:
             logger.error(f"Error creating policy rule: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response(rule.as_dict() if rule else None)
 
     except Exception as e:
         logger.error(f"Exception creating policy rule: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -375,13 +372,13 @@ async def update_policy_rule(ctx: Context, policy_id: str, rule_id: str, rule_da
 
         if err:
             logger.error(f"Error updating policy rule: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response(rule.as_dict() if rule else None)
 
     except Exception as e:
         logger.error(f"Exception updating policy rule: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -403,13 +400,13 @@ async def delete_policy_rule(ctx: Context, policy_id: str, rule_id: str) -> dict
 
         if err:
             logger.error(f"Error deleting policy rule: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response({"message": f"Rule {rule_id} deleted successfully"})
 
     except Exception as e:
         logger.error(f"Exception deleting policy rule: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -431,13 +428,13 @@ async def activate_policy_rule(ctx: Context, policy_id: str, rule_id: str) -> di
 
         if err:
             logger.error(f"Error activating policy rule: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response({"message": f"Rule {rule_id} activated successfully"})
 
     except Exception as e:
         logger.error(f"Exception activating policy rule: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -459,10 +456,10 @@ async def deactivate_policy_rule(ctx: Context, policy_id: str, rule_id: str) -> 
 
         if err:
             logger.error(f"Error deactivating policy rule: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         return success_response({"message": f"Rule {rule_id} deactivated successfully"})
 
     except Exception as e:
         logger.error(f"Exception deactivating policy rule: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

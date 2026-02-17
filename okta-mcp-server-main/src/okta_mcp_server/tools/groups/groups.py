@@ -14,6 +14,7 @@ from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.pagination import build_query_params, create_paginated_response, paginate_all_results
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 
 @mcp.tool()
@@ -59,13 +60,9 @@ async def list_groups(
     )
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -78,7 +75,7 @@ async def list_groups(
 
         if err:
             logger.error(f"Okta API error while listing groups: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not groups:
             logger.info("No groups found")
@@ -100,7 +97,7 @@ async def list_groups(
 
     except Exception as e:
         logger.error(f"Exception while listing groups: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -117,6 +114,10 @@ async def get_group(ctx: Context, group_id: str) -> dict:
     """
     logger.info(f"Getting group with ID: {group_id}")
 
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -127,13 +128,13 @@ async def get_group(ctx: Context, group_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved group: {group_id}")
         return success_response(group)
     except Exception as e:
         logger.error(f"Exception while getting group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -162,7 +163,7 @@ async def create_group(ctx: Context, profile: dict) -> dict:
 
         if err:
             logger.error(f"Okta API error while creating group: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(
             f"Successfully created group: {group.id} ({group.profile.name if hasattr(group, 'profile') else 'N/A'})"
@@ -170,7 +171,7 @@ async def create_group(ctx: Context, profile: dict) -> dict:
         return success_response(group)
     except Exception as e:
         logger.error(f"Exception while creating group: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -231,13 +232,13 @@ async def confirm_delete_group(ctx: Context, group_id: str, confirmation: str) -
 
         if err:
             logger.error(f"Okta API error while deleting group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deleted group: {group_id}")
         return success_response({"message": f"Group {group_id} deleted successfully"})
     except Exception as e:
         logger.error(f"Exception while deleting group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -254,6 +255,10 @@ async def update_group(ctx: Context, group_id: str, profile: dict) -> dict:
         Dict with success status and updated group details.
     """
     logger.info(f"Updating group with ID: {group_id}")
+
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
     logger.debug(f"Updated fields: {list(profile.keys())}")
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
@@ -267,19 +272,19 @@ async def update_group(ctx: Context, group_id: str, profile: dict) -> dict:
 
         if err:
             logger.error(f"Okta API error while updating group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated group: {group_id}")
         return success_response(group)
     except Exception as e:
         logger.error(f"Exception while updating group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
 async def list_group_users(
+    ctx: Context,
     group_id: str,
-    ctx: Context = None,
     fetch_all: bool = False,
     after: Optional[str] = None,
     limit: Optional[int] = None,
@@ -313,13 +318,9 @@ async def list_group_users(
     logger.debug(f"fetch_all: {fetch_all}, after: '{after}', limit: {limit}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -332,7 +333,7 @@ async def list_group_users(
 
         if err:
             logger.error(f"Okta API error while listing group users for {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not users:
             logger.info(f"No users found in group {group_id}")
@@ -353,7 +354,7 @@ async def list_group_users(
 
     except Exception as e:
         logger.error(f"Exception while listing users in group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -380,7 +381,7 @@ async def list_group_apps(ctx: Context, group_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while listing applications for group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         app_count = len(apps) if apps else 0
         logger.info(f"Successfully retrieved {app_count} applications for group {group_id}")
@@ -388,7 +389,7 @@ async def list_group_apps(ctx: Context, group_id: str) -> dict:
         return success_response([app for app in apps])
     except Exception as e:
         logger.error(f"Exception while listing applications for group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -416,13 +417,13 @@ async def add_user_to_group(ctx: Context, group_id: str, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while adding user {user_id} to group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully added user {user_id} to group {group_id}")
         return success_response({"message": "User added to group successfully"})
     except Exception as e:
         logger.error(f"Exception while adding user {user_id} to group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -450,10 +451,10 @@ async def remove_user_from_group(ctx: Context, group_id: str, user_id: str) -> d
 
         if err:
             logger.error(f"Okta API error while removing user {user_id} from group {group_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully removed user {user_id} from group {group_id}")
         return success_response({"message": "User removed from group successfully"})
     except Exception as e:
         logger.error(f"Exception while removing user {user_id} from group {group_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

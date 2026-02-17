@@ -86,9 +86,7 @@ class TestPaginateAllResults:
         page2_resp = MockOktaResponse(has_next=True, next_page_data=([{"id": "3"}], page3_resp))
         page1_resp = MockOktaResponse(has_next=True, next_page_data=([{"id": "2"}], page2_resp))
 
-        all_items, info = await paginate_all_results(
-            page1_resp, [{"id": "1"}], max_pages=2, delay_between_requests=0
-        )
+        all_items, info = await paginate_all_results(page1_resp, [{"id": "1"}], max_pages=2, delay_between_requests=0)
         assert info["pages_fetched"] == 2
         assert info["stopped_early"] is True
         assert "maximum page limit" in info["stop_reason"]
@@ -108,6 +106,7 @@ class TestPaginateAllResults:
     @pytest.mark.asyncio
     async def test_error_in_next_page(self):
         """When response.next() returns an error, pagination stops early."""
+
         class ErrorResponse:
             def has_next(self):
                 return True

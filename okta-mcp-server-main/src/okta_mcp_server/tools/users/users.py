@@ -14,6 +14,7 @@ from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.pagination import build_query_params, create_paginated_response, paginate_all_results
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 
 @mcp.tool()
@@ -65,14 +66,9 @@ async def list_users(
         f"Search: '{search}', Filter: '{filter_expr}', Q: '{q}', fetch_all: {fetch_all}, after: '{after}', limit: {limit}"
     )
 
-    # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -85,7 +81,7 @@ async def list_users(
 
         if err:
             logger.error(f"Okta API error while listing users: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not users:
             logger.info("No users found")
@@ -111,7 +107,7 @@ async def list_users(
 
     except Exception as e:
         logger.error(f"Exception while listing users: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -136,7 +132,7 @@ async def get_user_profile_attributes(ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while fetching profile attributes: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if len(users) > 0:
             attributes = vars(users[0].profile)
@@ -148,7 +144,7 @@ async def get_user_profile_attributes(ctx: Context) -> dict:
         return success_response([])
     except Exception as e:
         logger.error(f"Exception while fetching profile attributes: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -165,6 +161,10 @@ async def get_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Getting user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -177,7 +177,7 @@ async def get_user(ctx: Context, user_id: str) -> dict:
         return success_response(user)
     except Exception as e:
         logger.error(f"Exception while getting user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -207,7 +207,7 @@ async def create_user(ctx: Context, profile: dict) -> dict:
 
         if err:
             logger.error(f"Okta API error while creating user: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(
             f"Successfully created user: {user.id} ({user.profile.email if hasattr(user, 'profile') else 'N/A'})"
@@ -215,7 +215,7 @@ async def create_user(ctx: Context, profile: dict) -> dict:
         return success_response(user)
     except Exception as e:
         logger.error(f"Exception while creating user: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -233,6 +233,10 @@ async def update_user(ctx: Context, user_id: str, profile: dict) -> dict:
     """
     logger.info(f"Updating user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -244,13 +248,13 @@ async def update_user(ctx: Context, user_id: str, profile: dict) -> dict:
 
         if err:
             logger.error(f"Okta API error while updating user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated user: {user_id}")
         return success_response(user)
     except Exception as e:
         logger.error(f"Exception while updating user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -268,6 +272,10 @@ async def deactivate_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Deactivating user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -278,13 +286,13 @@ async def deactivate_user(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while deactivating user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated user: {user_id}")
         return success_response({"message": f"User {user_id} deactivated successfully."})
     except Exception as e:
         logger.error(f"Exception while deactivating user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -301,6 +309,10 @@ async def delete_deactivated_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Deleting deactivated user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -311,13 +323,13 @@ async def delete_deactivated_user(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while deleting user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deleted user: {user_id}")
         return success_response({"message": f"User {user_id} deleted successfully."})
     except Exception as e:
         logger.error(f"Exception while deleting user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -335,6 +347,10 @@ async def activate_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Activating user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -345,13 +361,13 @@ async def activate_user(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while activating user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated user: {user_id}")
         return success_response({"message": f"User {user_id} activated successfully."})
     except Exception as e:
         logger.error(f"Exception while activating user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -369,6 +385,10 @@ async def reactivate_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Reactivating user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -379,13 +399,13 @@ async def reactivate_user(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while reactivating user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully reactivated user: {user_id}")
         return success_response({"message": f"User {user_id} reactivated successfully."})
     except Exception as e:
         logger.error(f"Exception while reactivating user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -403,6 +423,10 @@ async def suspend_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Suspending user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -413,13 +437,13 @@ async def suspend_user(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while suspending user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully suspended user: {user_id}")
         return success_response({"message": f"User {user_id} suspended successfully."})
     except Exception as e:
         logger.error(f"Exception while suspending user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -437,6 +461,10 @@ async def unsuspend_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Unsuspending user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -447,13 +475,13 @@ async def unsuspend_user(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while unsuspending user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully unsuspended user: {user_id}")
         return success_response({"message": f"User {user_id} unsuspended successfully."})
     except Exception as e:
         logger.error(f"Exception while unsuspending user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -471,6 +499,10 @@ async def unlock_user(ctx: Context, user_id: str) -> dict:
     """
     logger.info(f"Unlocking user with ID: {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -481,13 +513,13 @@ async def unlock_user(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while unlocking user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully unlocked user: {user_id}")
         return success_response({"message": f"User {user_id} unlocked successfully."})
     except Exception as e:
         logger.error(f"Exception while unlocking user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -515,7 +547,7 @@ async def expire_password(ctx: Context, user_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while expiring password for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully expired password for user: {user_id}")
         return success_response(
@@ -523,7 +555,7 @@ async def expire_password(ctx: Context, user_id: str) -> dict:
         )
     except Exception as e:
         logger.error(f"Exception while expiring password for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -552,7 +584,7 @@ async def expire_password_with_temp_password(ctx: Context, user_id: str) -> dict
 
         if err:
             logger.error(f"Okta API error while expiring password for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully expired password and generated temp password for user: {user_id}")
         return success_response(
@@ -565,7 +597,7 @@ async def expire_password_with_temp_password(ctx: Context, user_id: str) -> dict
         logger.error(
             f"Exception while expiring password with temp password for user {user_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -595,7 +627,7 @@ async def reset_password(ctx: Context, user_id: str, send_email: bool = True) ->
 
         if err:
             logger.error(f"Okta API error while resetting password for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully reset password for user: {user_id}")
         response_dict = {"message": f"Password reset initiated for user {user_id}."}
@@ -604,13 +636,13 @@ async def reset_password(ctx: Context, user_id: str, send_email: bool = True) ->
         return success_response(response_dict)
     except Exception as e:
         logger.error(f"Exception while resetting password for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
 async def list_user_groups(
-    user_id: str,
     ctx: Context,
+    user_id: str,
     fetch_all: bool = False,
     after: Optional[str] = None,
     limit: Optional[int] = None,
@@ -635,14 +667,9 @@ async def list_user_groups(
     logger.info(f"Listing groups for user: {user_id}")
     logger.debug(f"fetch_all: {fetch_all}, after: '{after}', limit: {limit}")
 
-    # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -655,7 +682,7 @@ async def list_user_groups(
 
         if err:
             logger.error(f"Okta API error: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not groups:
             logger.info("No groups found")
@@ -675,13 +702,13 @@ async def list_user_groups(
 
     except Exception as e:
         logger.error(f"Exception: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
 async def list_user_apps(
-    user_id: str,
     ctx: Context,
+    user_id: str,
     fetch_all: bool = False,
     after: Optional[str] = None,
     limit: Optional[int] = None,
@@ -706,14 +733,9 @@ async def list_user_apps(
     logger.info(f"Listing apps for user: {user_id}")
     logger.debug(f"fetch_all: {fetch_all}, after: '{after}', limit: {limit}")
 
-    # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -725,7 +747,7 @@ async def list_user_apps(
 
         if err:
             logger.error(f"Okta API error: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not apps:
             logger.info("No apps found")
@@ -743,4 +765,4 @@ async def list_user_apps(
 
     except Exception as e:
         logger.error(f"Exception: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

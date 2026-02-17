@@ -21,6 +21,7 @@ from okta_mcp_server.utils.pagination import (
     paginate_all_results,
 )
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # CRUD Operations
@@ -56,13 +57,9 @@ async def list_network_zones(
     logger.debug(f"Query parameters: q='{q}', limit={limit}, fetch_all={fetch_all}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -75,7 +72,7 @@ async def list_network_zones(
 
         if err:
             logger.error(f"Okta API error while listing network zones: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not zones:
             logger.info("No network zones found")
@@ -96,7 +93,7 @@ async def list_network_zones(
 
     except Exception as e:
         logger.error(f"Exception while listing network zones: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -111,6 +108,10 @@ async def get_network_zone(ctx: Context, zone_id: str) -> dict:
     """
     logger.info(f"Getting network zone with ID: {zone_id}")
 
+    valid, err_msg = validate_okta_id(zone_id, "zone_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -120,13 +121,13 @@ async def get_network_zone(ctx: Context, zone_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting network zone {zone_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved network zone: {zone_id}")
         return success_response(zone)
     except Exception as e:
         logger.error(f"Exception while getting network zone {zone_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -167,13 +168,13 @@ async def create_network_zone(
 
         if err:
             logger.error(f"Okta API error while creating network zone: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info("Successfully created network zone")
         return success_response(zone)
     except Exception as e:
         logger.error(f"Exception while creating network zone: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -215,13 +216,13 @@ async def update_network_zone(
 
         if err:
             logger.error(f"Okta API error while updating network zone {zone_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated network zone: {zone_id}")
         return success_response(zone)
     except Exception as e:
         logger.error(f"Exception while updating network zone {zone_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -287,13 +288,13 @@ async def confirm_delete_network_zone(ctx: Context, zone_id: str, confirmation: 
 
         if err:
             logger.error(f"Okta API error while deleting network zone {zone_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deleted network zone: {zone_id}")
         return success_response({"message": f"Network zone {zone_id} deleted successfully"})
     except Exception as e:
         logger.error(f"Exception while deleting network zone {zone_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -323,13 +324,13 @@ async def activate_network_zone(ctx: Context, zone_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while activating network zone {zone_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated network zone: {zone_id}")
         return success_response({"message": f"Network zone {zone_id} activated successfully"})
     except Exception as e:
         logger.error(f"Exception while activating network zone {zone_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -354,10 +355,10 @@ async def deactivate_network_zone(ctx: Context, zone_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while deactivating network zone {zone_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated network zone: {zone_id}")
         return success_response({"message": f"Network zone {zone_id} deactivated successfully"})
     except Exception as e:
         logger.error(f"Exception while deactivating network zone {zone_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

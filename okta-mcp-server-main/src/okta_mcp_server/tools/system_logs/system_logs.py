@@ -14,6 +14,7 @@ from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.pagination import build_query_params, create_paginated_response, paginate_all_results
 from okta_mcp_server.utils.response import error_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 
 @mcp.tool()
@@ -60,13 +61,9 @@ async def get_logs(
     logger.debug(f"fetch_all: {fetch_all}, after: '{after}', limit: {limit}, since: '{since}', until: '{until}'")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -80,7 +77,7 @@ async def get_logs(
 
         if err:
             logger.error(f"Okta API error while retrieving system logs: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not logs:
             logger.info("No system logs found")
@@ -107,4 +104,4 @@ async def get_logs(
 
     except Exception as e:
         logger.error(f"Exception while retrieving system logs: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

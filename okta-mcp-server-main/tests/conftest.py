@@ -696,35 +696,43 @@ class MockOktaClient:
         return None, None
 
     async def list_policy_rules(self, policy_id):
-        rule = type("MockPolicyRule", (), {
-            "id": "rule1",
-            "name": "Test Rule",
-            "as_dict": lambda self: {"id": self.id, "name": self.name}
-        })()
+        rule = type(
+            "MockPolicyRule",
+            (),
+            {"id": "rule1", "name": "Test Rule", "as_dict": lambda self: {"id": self.id, "name": self.name}},
+        )()
         return [rule], MockOktaResponse(), None
 
     async def get_policy_rule(self, policy_id, rule_id):
-        rule = type("MockPolicyRule", (), {
-            "id": rule_id,
-            "name": "Test Rule",
-            "as_dict": lambda self: {"id": self.id, "name": self.name}
-        })()
+        rule = type(
+            "MockPolicyRule",
+            (),
+            {"id": rule_id, "name": "Test Rule", "as_dict": lambda self: {"id": self.id, "name": self.name}},
+        )()
         return rule, MockOktaResponse(), None
 
     async def create_policy_rule(self, policy_id, rule_data):
-        rule = type("MockPolicyRule", (), {
-            "id": "rule1",
-            "name": rule_data.get("name", "Test Rule"),
-            "as_dict": lambda self: {"id": self.id, "name": self.name}
-        })()
+        rule = type(
+            "MockPolicyRule",
+            (),
+            {
+                "id": "rule1",
+                "name": rule_data.get("name", "Test Rule"),
+                "as_dict": lambda self: {"id": self.id, "name": self.name},
+            },
+        )()
         return rule, MockOktaResponse(), None
 
     async def update_policy_rule(self, policy_id, rule_id, rule_data):
-        rule = type("MockPolicyRule", (), {
-            "id": rule_id,
-            "name": rule_data.get("name", "Test Rule"),
-            "as_dict": lambda self: {"id": self.id, "name": self.name}
-        })()
+        rule = type(
+            "MockPolicyRule",
+            (),
+            {
+                "id": rule_id,
+                "name": rule_data.get("name", "Test Rule"),
+                "as_dict": lambda self: {"id": self.id, "name": self.name},
+            },
+        )()
         return rule, MockOktaResponse(), None
 
     async def delete_policy_rule(self, policy_id, rule_id):
@@ -738,15 +746,19 @@ class MockOktaClient:
 
     async def get_logs(self, query_params):
         logs = [
-            type("MockLog", (), {
-                "id": f"log_{i}",
-                "eventType": "user.lifecycle.create",
-                "published": "2024-01-01T00:00:00.000Z",
-                "actor": {"id": "actor1", "displayName": "Admin User", "type": "User"},
-                "client": {"ipAddress": "192.168.1.1"},
-                "outcome": {"result": "SUCCESS"},
-                "as_dict": lambda: {"id": f"log_{i}", "eventType": "user.lifecycle.create"}
-            })()
+            type(
+                "MockLog",
+                (),
+                {
+                    "id": f"log_{i}",
+                    "eventType": "user.lifecycle.create",
+                    "published": "2024-01-01T00:00:00.000Z",
+                    "actor": {"id": "actor1", "displayName": "Admin User", "type": "User"},
+                    "client": {"ipAddress": "192.168.1.1"},
+                    "outcome": {"result": "SUCCESS"},
+                    "as_dict": lambda: {"id": f"log_{i}", "eventType": "user.lifecycle.create"},
+                },
+            )()
             for i in range(3)
         ]
         return logs, MockOktaResponse(), None

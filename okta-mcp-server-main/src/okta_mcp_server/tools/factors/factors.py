@@ -13,6 +13,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # Factors Management Operations
@@ -41,13 +42,13 @@ async def list_user_factors(user_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while listing factors for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved {len(factors) if factors else 0} factors for user {user_id}")
         return success_response(factors if factors else [])
     except Exception as e:
         logger.error(f"Exception while listing factors for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -73,13 +74,13 @@ async def get_user_factor(user_id: str, factor_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting factor {factor_id} for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved factor {factor_id} for user {user_id}")
         return success_response(factor)
     except Exception as e:
         logger.error(f"Exception while getting factor {factor_id} for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -121,13 +122,13 @@ async def enroll_factor(
 
         if err:
             logger.error(f"Okta API error while enrolling factor for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully enrolled factor {factor_type} for user {user_id}")
         return success_response(factor)
     except Exception as e:
         logger.error(f"Exception while enrolling factor for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -164,13 +165,13 @@ async def activate_factor(
 
         if err:
             logger.error(f"Okta API error while activating factor {factor_id} for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated factor {factor_id} for user {user_id}")
         return success_response(factor)
     except Exception as e:
         logger.error(f"Exception while activating factor {factor_id} for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -198,13 +199,13 @@ async def reset_factor(user_id: str, factor_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while resetting factor {factor_id} for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully reset factor {factor_id} for user {user_id}")
         return success_response({"message": f"Factor {factor_id} has been reset for user {user_id}."})
     except Exception as e:
         logger.error(f"Exception while resetting factor {factor_id} for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -239,10 +240,10 @@ async def verify_factor(
 
         if err:
             logger.error(f"Okta API error while verifying factor {factor_id} for user {user_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully verified factor {factor_id} for user {user_id}")
         return success_response(result)
     except Exception as e:
         logger.error(f"Exception while verifying factor {factor_id} for user {user_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

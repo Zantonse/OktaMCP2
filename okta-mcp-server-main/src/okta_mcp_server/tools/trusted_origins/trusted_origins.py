@@ -21,6 +21,7 @@ from okta_mcp_server.utils.pagination import (
     paginate_all_results,
 )
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # CRUD Operations
@@ -56,13 +57,9 @@ async def list_trusted_origins(
     logger.debug(f"Query parameters: q='{q}', limit={limit}, fetch_all={fetch_all}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -75,7 +72,7 @@ async def list_trusted_origins(
 
         if err:
             logger.error(f"Okta API error while listing trusted origins: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not origins:
             logger.info("No trusted origins found")
@@ -98,7 +95,7 @@ async def list_trusted_origins(
 
     except Exception as e:
         logger.error(f"Exception while listing trusted origins: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -113,6 +110,10 @@ async def get_trusted_origin(ctx: Context, origin_id: str) -> dict:
     """
     logger.info(f"Getting trusted origin with ID: {origin_id}")
 
+    valid, err_msg = validate_okta_id(origin_id, "origin_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -122,13 +123,13 @@ async def get_trusted_origin(ctx: Context, origin_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting trusted origin {origin_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved trusted origin: {origin_id}")
         return success_response(origin)
     except Exception as e:
         logger.error(f"Exception while getting trusted origin {origin_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -168,13 +169,13 @@ async def create_trusted_origin(
 
         if err:
             logger.error(f"Okta API error while creating trusted origin: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info("Successfully created trusted origin")
         return success_response(origin_obj)
     except Exception as e:
         logger.error(f"Exception while creating trusted origin: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -196,6 +197,10 @@ async def update_trusted_origin(
     """
     logger.info(f"Updating trusted origin with ID: {origin_id}")
 
+    valid, err_msg = validate_okta_id(origin_id, "origin_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -212,13 +217,13 @@ async def update_trusted_origin(
 
         if err:
             logger.error(f"Okta API error while updating trusted origin {origin_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated trusted origin: {origin_id}")
         return success_response(origin_obj)
     except Exception as e:
         logger.error(f"Exception while updating trusted origin {origin_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -284,13 +289,13 @@ async def confirm_delete_trusted_origin(ctx: Context, origin_id: str, confirmati
 
         if err:
             logger.error(f"Okta API error while deleting trusted origin {origin_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deleted trusted origin: {origin_id}")
         return success_response({"message": f"Trusted origin {origin_id} deleted successfully"})
     except Exception as e:
         logger.error(f"Exception while deleting trusted origin {origin_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -320,13 +325,13 @@ async def activate_trusted_origin(ctx: Context, origin_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while activating trusted origin {origin_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated trusted origin: {origin_id}")
         return success_response({"message": f"Trusted origin {origin_id} activated successfully"})
     except Exception as e:
         logger.error(f"Exception while activating trusted origin {origin_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -351,10 +356,10 @@ async def deactivate_trusted_origin(ctx: Context, origin_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while deactivating trusted origin {origin_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated trusted origin: {origin_id}")
         return success_response({"message": f"Trusted origin {origin_id} deactivated successfully"})
     except Exception as e:
         logger.error(f"Exception while deactivating trusted origin {origin_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

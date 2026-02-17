@@ -21,6 +21,7 @@ from okta_mcp_server.utils.pagination import (
     paginate_all_results,
 )
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # CRUD Operations
@@ -58,13 +59,9 @@ async def list_identity_providers(
     logger.debug(f"Query parameters: q='{q}', type_filter='{type_filter}', limit={limit}, fetch_all={fetch_all}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -77,7 +74,7 @@ async def list_identity_providers(
 
         if err:
             logger.error(f"Okta API error while listing identity providers: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not providers:
             logger.info("No identity providers found")
@@ -100,7 +97,7 @@ async def list_identity_providers(
 
     except Exception as e:
         logger.error(f"Exception while listing identity providers: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -115,6 +112,10 @@ async def get_identity_provider(ctx: Context, idp_id: str) -> dict:
     """
     logger.info(f"Getting identity provider with ID: {idp_id}")
 
+    valid, err_msg = validate_okta_id(idp_id, "idp_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -124,13 +125,13 @@ async def get_identity_provider(ctx: Context, idp_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting identity provider {idp_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved identity provider: {idp_id}")
         return success_response(provider)
     except Exception as e:
         logger.error(f"Exception while getting identity provider {idp_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -174,13 +175,13 @@ async def create_identity_provider(
 
         if err:
             logger.error(f"Okta API error while creating identity provider: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info("Successfully created identity provider")
         return success_response(provider)
     except Exception as e:
         logger.error(f"Exception while creating identity provider: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -225,13 +226,13 @@ async def update_identity_provider(
 
         if err:
             logger.error(f"Okta API error while updating identity provider {idp_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated identity provider: {idp_id}")
         return success_response(provider)
     except Exception as e:
         logger.error(f"Exception while updating identity provider {idp_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -297,13 +298,13 @@ async def confirm_delete_identity_provider(ctx: Context, idp_id: str, confirmati
 
         if err:
             logger.error(f"Okta API error while deleting identity provider {idp_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deleted identity provider: {idp_id}")
         return success_response({"message": f"Identity provider {idp_id} deleted successfully"})
     except Exception as e:
         logger.error(f"Exception while deleting identity provider {idp_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -333,13 +334,13 @@ async def activate_identity_provider(ctx: Context, idp_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while activating identity provider {idp_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated identity provider: {idp_id}")
         return success_response({"message": f"Identity provider {idp_id} activated successfully"})
     except Exception as e:
         logger.error(f"Exception while activating identity provider {idp_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -364,10 +365,10 @@ async def deactivate_identity_provider(ctx: Context, idp_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while deactivating identity provider {idp_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated identity provider: {idp_id}")
         return success_response({"message": f"Identity provider {idp_id} deactivated successfully"})
     except Exception as e:
         logger.error(f"Exception while deactivating identity provider {idp_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

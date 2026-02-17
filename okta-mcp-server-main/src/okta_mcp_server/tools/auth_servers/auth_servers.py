@@ -21,6 +21,7 @@ from okta_mcp_server.utils.pagination import (
     paginate_all_results,
 )
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # CRUD Operations
@@ -56,13 +57,9 @@ async def list_authorization_servers(
     logger.debug(f"Query parameters: q='{q}', limit={limit}, fetch_all={fetch_all}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -75,7 +72,7 @@ async def list_authorization_servers(
 
         if err:
             logger.error(f"Okta API error while listing authorization servers: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not servers:
             logger.info("No authorization servers found")
@@ -98,7 +95,7 @@ async def list_authorization_servers(
 
     except Exception as e:
         logger.error(f"Exception while listing authorization servers: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -122,13 +119,13 @@ async def get_authorization_server(ctx: Context, auth_server_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting authorization server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved authorization server: {auth_server_id}")
         return success_response(server)
     except Exception as e:
         logger.error(f"Exception while getting authorization server {auth_server_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -167,13 +164,13 @@ async def create_authorization_server(
 
         if err:
             logger.error(f"Okta API error while creating authorization server: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info("Successfully created authorization server")
         return success_response(server)
     except Exception as e:
         logger.error(f"Exception while creating authorization server: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -215,13 +212,13 @@ async def update_authorization_server(
 
         if err:
             logger.error(f"Okta API error while updating authorization server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated authorization server: {auth_server_id}")
         return success_response(server)
     except Exception as e:
         logger.error(f"Exception while updating authorization server {auth_server_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -287,13 +284,13 @@ async def confirm_delete_authorization_server(ctx: Context, auth_server_id: str,
 
         if err:
             logger.error(f"Okta API error while deleting authorization server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deleted authorization server: {auth_server_id}")
         return success_response({"message": f"Authorization server {auth_server_id} deleted successfully"})
     except Exception as e:
         logger.error(f"Exception while deleting authorization server {auth_server_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -323,13 +320,13 @@ async def activate_authorization_server(ctx: Context, auth_server_id: str) -> di
 
         if err:
             logger.error(f"Okta API error while activating authorization server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated authorization server: {auth_server_id}")
         return success_response({"message": f"Authorization server {auth_server_id} activated successfully"})
     except Exception as e:
         logger.error(f"Exception while activating authorization server {auth_server_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -354,13 +351,13 @@ async def deactivate_authorization_server(ctx: Context, auth_server_id: str) -> 
 
         if err:
             logger.error(f"Okta API error while deactivating authorization server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated authorization server: {auth_server_id}")
         return success_response({"message": f"Authorization server {auth_server_id} deactivated successfully"})
     except Exception as e:
         logger.error(f"Exception while deactivating authorization server {auth_server_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -397,13 +394,9 @@ async def list_auth_server_policies(
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -416,7 +409,7 @@ async def list_auth_server_policies(
 
         if err:
             logger.error(f"Okta API error while listing policies for auth server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not policies:
             logger.info(f"No policies found for authorization server {auth_server_id}")
@@ -440,7 +433,7 @@ async def list_auth_server_policies(
         logger.error(
             f"Exception while listing authorization server policies for {auth_server_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -472,13 +465,13 @@ async def create_auth_server_policy(
 
         if err:
             logger.error(f"Okta API error while creating policy for auth server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully created policy for authorization server {auth_server_id}")
         return success_response(policy)
     except Exception as e:
         logger.error(f"Exception while creating authorization server policy: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -515,13 +508,9 @@ async def list_auth_server_scopes(
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -534,7 +523,7 @@ async def list_auth_server_scopes(
 
         if err:
             logger.error(f"Okta API error while listing scopes for auth server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not scopes:
             logger.info(f"No scopes found for authorization server {auth_server_id}")
@@ -558,7 +547,7 @@ async def list_auth_server_scopes(
         logger.error(
             f"Exception while listing authorization server scopes for {auth_server_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -604,13 +593,13 @@ async def create_auth_server_scope(
 
         if err:
             logger.error(f"Okta API error while creating scope for auth server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully created scope for authorization server {auth_server_id}")
         return success_response(scope)
     except Exception as e:
         logger.error(f"Exception while creating authorization server scope: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -647,13 +636,9 @@ async def list_auth_server_claims(
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -666,7 +651,7 @@ async def list_auth_server_claims(
 
         if err:
             logger.error(f"Okta API error while listing claims for auth server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not claims:
             logger.info(f"No claims found for authorization server {auth_server_id}")
@@ -690,7 +675,7 @@ async def list_auth_server_claims(
         logger.error(
             f"Exception while listing authorization server claims for {auth_server_id}: {type(e).__name__}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -738,10 +723,10 @@ async def create_auth_server_claim(
 
         if err:
             logger.error(f"Okta API error while creating claim for auth server {auth_server_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully created claim for authorization server {auth_server_id}")
         return success_response(claim)
     except Exception as e:
         logger.error(f"Exception while creating authorization server claim: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

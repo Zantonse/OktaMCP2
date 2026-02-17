@@ -14,6 +14,7 @@ from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.pagination import build_query_params, create_paginated_response, paginate_all_results
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 
 @mcp.tool()
@@ -52,13 +53,9 @@ async def list_applications(
     logger.debug(f"Query parameters: q='{q}', filter='{filter_expr}', limit={limit}, fetch_all={fetch_all}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -76,7 +73,7 @@ async def list_applications(
 
         if err:
             logger.error(f"Okta API error while listing applications: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not apps:
             logger.info("No applications found")
@@ -96,7 +93,7 @@ async def list_applications(
 
     except Exception as e:
         logger.error(f"Exception while listing applications: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -113,6 +110,10 @@ async def get_application(ctx: Context, app_id: str, expand: Optional[str] = Non
     """
     logger.info(f"Getting application with ID: {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -126,13 +127,13 @@ async def get_application(ctx: Context, app_id: str, expand: Optional[str] = Non
 
         if err:
             logger.error(f"Okta API error while getting application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved application: {app_id}")
         return success_response(app)
     except Exception as e:
         logger.error(f"Exception while getting application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -161,13 +162,13 @@ async def create_application(ctx: Context, app_config: Dict[str, Any], activate:
 
         if err:
             logger.error(f"Okta API error while creating application: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info("Successfully created application")
         return success_response(app)
     except Exception as e:
         logger.error(f"Exception while creating application: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -183,6 +184,10 @@ async def update_application(ctx: Context, app_id: str, app_config: Dict[str, An
     """
     logger.info(f"Updating application with ID: {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -193,13 +198,13 @@ async def update_application(ctx: Context, app_id: str, app_config: Dict[str, An
 
         if err:
             logger.error(f"Okta API error while updating application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated application: {app_id}")
         return success_response(app)
     except Exception as e:
         logger.error(f"Exception while updating application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -258,13 +263,13 @@ async def confirm_delete_application(ctx: Context, app_id: str, confirmation: st
 
         if err:
             logger.error(f"Okta API error while deleting application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deleted application: {app_id}")
         return success_response({"message": f"Application {app_id} deleted successfully"})
     except Exception as e:
         logger.error(f"Exception while deleting application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -279,6 +284,10 @@ async def activate_application(ctx: Context, app_id: str) -> dict:
     """
     logger.info(f"Activating application: {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -289,13 +298,13 @@ async def activate_application(ctx: Context, app_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while activating application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated application: {app_id}")
         return success_response({"message": f"Application {app_id} activated successfully"})
     except Exception as e:
         logger.error(f"Exception while activating application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -310,6 +319,10 @@ async def deactivate_application(ctx: Context, app_id: str) -> dict:
     """
     logger.info(f"Deactivating application: {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -320,19 +333,19 @@ async def deactivate_application(ctx: Context, app_id: str) -> dict:
 
         if err:
             logger.error(f"Okta API error while deactivating application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated application: {app_id}")
         return success_response({"message": f"Application {app_id} deactivated successfully"})
     except Exception as e:
         logger.error(f"Exception while deactivating application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
 async def list_application_users(
-    app_id: str,
     ctx: Context,
+    app_id: str,
     fetch_all: bool = False,
     after: Optional[str] = None,
     limit: Optional[int] = None,
@@ -358,13 +371,9 @@ async def list_application_users(
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -377,7 +386,7 @@ async def list_application_users(
 
         if err:
             logger.error(f"Okta API error while listing application users for {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not users:
             logger.info(f"No users found assigned to application {app_id}")
@@ -397,11 +406,11 @@ async def list_application_users(
 
     except Exception as e:
         logger.error(f"Exception while listing application users for {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
-async def get_application_user(app_id: str, user_id: str, ctx: Context) -> dict:
+async def get_application_user(ctx: Context, app_id: str, user_id: str) -> dict:
     """Get a specific user assigned to an application.
 
     Parameters:
@@ -413,6 +422,13 @@ async def get_application_user(app_id: str, user_id: str, ctx: Context) -> dict:
     """
     logger.info(f"Getting user {user_id} for application {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -423,20 +439,20 @@ async def get_application_user(app_id: str, user_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting user {user_id} for application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved user {user_id} for application {app_id}")
         return success_response(user)
     except Exception as e:
         logger.error(f"Exception while getting user {user_id} for application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
 async def assign_user_to_application(
+    ctx: Context,
     app_id: str,
     user_id: str,
-    ctx: Context,
     app_user_config: Optional[Dict[str, Any]] = None,
 ) -> dict:
     """Assign a user to an application.
@@ -450,6 +466,13 @@ async def assign_user_to_application(
         Dict with success status and assignment details.
     """
     logger.info(f"Assigning user {user_id} to application {app_id}")
+
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
     logger.debug(f"App user config: {app_user_config}")
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
@@ -466,17 +489,17 @@ async def assign_user_to_application(
 
         if err:
             logger.error(f"Okta API error while assigning user {user_id} to application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully assigned user {user_id} to application {app_id}")
         return success_response(user)
     except Exception as e:
         logger.error(f"Exception while assigning user {user_id} to application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
-async def remove_user_from_application(app_id: str, user_id: str, ctx: Context) -> dict:
+async def remove_user_from_application(ctx: Context, app_id: str, user_id: str) -> dict:
     """Remove a user from an application.
 
     Parameters:
@@ -488,6 +511,13 @@ async def remove_user_from_application(app_id: str, user_id: str, ctx: Context) 
     """
     logger.info(f"Removing user {user_id} from application {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -498,19 +528,19 @@ async def remove_user_from_application(app_id: str, user_id: str, ctx: Context) 
 
         if err:
             logger.error(f"Okta API error while removing user {user_id} from application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully removed user {user_id} from application {app_id}")
         return success_response({"message": f"User {user_id} removed from application {app_id} successfully"})
     except Exception as e:
         logger.error(f"Exception while removing user {user_id} from application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
 async def list_application_groups(
-    app_id: str,
     ctx: Context,
+    app_id: str,
     fetch_all: bool = False,
     after: Optional[str] = None,
     limit: Optional[int] = None,
@@ -536,13 +566,9 @@ async def list_application_groups(
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
 
     # Validate limit parameter range
-    if limit is not None:
-        if limit < 20:
-            logger.warning(f"Limit {limit} is below minimum (20), setting to 20")
-            limit = 20
-        elif limit > 100:
-            logger.warning(f"Limit {limit} exceeds maximum (100), setting to 100")
-            limit = 100
+    limit, limit_warning = validate_limit(limit)
+    if limit_warning:
+        logger.warning(limit_warning)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -555,7 +581,7 @@ async def list_application_groups(
 
         if err:
             logger.error(f"Okta API error while listing application groups for {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         if not groups:
             logger.info(f"No groups found assigned to application {app_id}")
@@ -577,11 +603,11 @@ async def list_application_groups(
 
     except Exception as e:
         logger.error(f"Exception while listing application groups for {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
-async def get_application_group(app_id: str, group_id: str, ctx: Context) -> dict:
+async def get_application_group(ctx: Context, app_id: str, group_id: str) -> dict:
     """Get a specific group assigned to an application.
 
     Parameters:
@@ -593,6 +619,13 @@ async def get_application_group(app_id: str, group_id: str, ctx: Context) -> dic
     """
     logger.info(f"Getting group {group_id} for application {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -603,17 +636,17 @@ async def get_application_group(app_id: str, group_id: str, ctx: Context) -> dic
 
         if err:
             logger.error(f"Okta API error while getting group {group_id} for application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved group {group_id} for application {app_id}")
         return success_response(group)
     except Exception as e:
         logger.error(f"Exception while getting group {group_id} for application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
-async def assign_group_to_application(app_id: str, group_id: str, ctx: Context) -> dict:
+async def assign_group_to_application(ctx: Context, app_id: str, group_id: str) -> dict:
     """Assign a group to an application.
 
     Parameters:
@@ -625,6 +658,13 @@ async def assign_group_to_application(app_id: str, group_id: str, ctx: Context) 
     """
     logger.info(f"Assigning group {group_id} to application {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -635,17 +675,17 @@ async def assign_group_to_application(app_id: str, group_id: str, ctx: Context) 
 
         if err:
             logger.error(f"Okta API error while assigning group {group_id} to application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully assigned group {group_id} to application {app_id}")
         return success_response(group)
     except Exception as e:
         logger.error(f"Exception while assigning group {group_id} to application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
-async def remove_group_from_application(app_id: str, group_id: str, ctx: Context) -> dict:
+async def remove_group_from_application(ctx: Context, app_id: str, group_id: str) -> dict:
     """Remove a group from an application.
 
     Parameters:
@@ -657,6 +697,13 @@ async def remove_group_from_application(app_id: str, group_id: str, ctx: Context
     """
     logger.info(f"Removing group {group_id} from application {app_id}")
 
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -667,10 +714,10 @@ async def remove_group_from_application(app_id: str, group_id: str, ctx: Context
 
         if err:
             logger.error(f"Okta API error while removing group {group_id} from application {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully removed group {group_id} from application {app_id}")
         return success_response({"message": f"Group {group_id} removed from application {app_id} successfully"})
     except Exception as e:
         logger.error(f"Exception while removing group {group_id} from application {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

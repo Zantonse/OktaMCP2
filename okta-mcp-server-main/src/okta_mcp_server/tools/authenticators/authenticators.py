@@ -14,6 +14,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 # ============================================================================
 # Authenticators CRUD Operations
@@ -39,13 +40,13 @@ async def list_authenticators(ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while listing authenticators: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved {len(authenticators) if authenticators else 0} authenticators")
         return success_response(authenticators if authenticators else [])
     except Exception as e:
         logger.error(f"Exception while listing authenticators: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -60,6 +61,10 @@ async def get_authenticator(authenticator_id: str, ctx: Context) -> dict:
     """
     logger.info(f"Getting authenticator with ID: {authenticator_id}")
 
+    valid, err_msg = validate_okta_id(authenticator_id, "authenticator_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -70,13 +75,13 @@ async def get_authenticator(authenticator_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting authenticator {authenticator_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved authenticator: {authenticator_id}")
         return success_response(authenticator)
     except Exception as e:
         logger.error(f"Exception while getting authenticator {authenticator_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -106,13 +111,13 @@ async def activate_authenticator(authenticator_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while activating authenticator {authenticator_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated authenticator: {authenticator_id}")
         return success_response({"message": f"Authenticator {authenticator_id} activated successfully"})
     except Exception as e:
         logger.error(f"Exception while activating authenticator {authenticator_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -127,6 +132,10 @@ async def deactivate_authenticator(authenticator_id: str, ctx: Context) -> dict:
     """
     logger.info(f"Deactivating authenticator: {authenticator_id}")
 
+    valid, err_msg = validate_okta_id(authenticator_id, "authenticator_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -137,13 +146,13 @@ async def deactivate_authenticator(authenticator_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while deactivating authenticator {authenticator_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated authenticator: {authenticator_id}")
         return success_response({"message": f"Authenticator {authenticator_id} deactivated successfully"})
     except Exception as e:
         logger.error(f"Exception while deactivating authenticator {authenticator_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -173,14 +182,14 @@ async def list_authenticator_methods(authenticator_id: str, ctx: Context) -> dic
 
         if err:
             logger.error(f"Okta API error while listing methods for authenticator {authenticator_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         retrieved_count = len(methods) if methods else 0
         logger.info(f"Successfully retrieved {retrieved_count} methods for authenticator {authenticator_id}")
         return success_response(methods if methods else [])
     except Exception as e:
         logger.error(f"Exception while listing methods for authenticator {authenticator_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -208,7 +217,7 @@ async def get_authenticator_method(authenticator_id: str, method_type: str, ctx:
             logger.error(
                 f"Okta API error while getting method {method_type} for authenticator {authenticator_id}: {err}"
             )
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved method {method_type} for authenticator {authenticator_id}")
         return success_response(method)
@@ -217,7 +226,7 @@ async def get_authenticator_method(authenticator_id: str, method_type: str, ctx:
         logger.error(
             f"Exception while getting method {method_type} for authenticator {authenticator_id}: {exc_name}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 # ============================================================================
@@ -250,7 +259,7 @@ async def activate_authenticator_method(authenticator_id: str, method_type: str,
             logger.error(
                 f"Okta API error while activating method {method_type} for authenticator {authenticator_id}: {err}"
             )
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully activated method {method_type} for authenticator {authenticator_id}")
         return success_response(
@@ -261,7 +270,7 @@ async def activate_authenticator_method(authenticator_id: str, method_type: str,
         logger.error(
             f"Exception while activating method {method_type} for authenticator {authenticator_id}: {exc_name}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -289,7 +298,7 @@ async def deactivate_authenticator_method(authenticator_id: str, method_type: st
             logger.error(
                 f"Okta API error while deactivating method {method_type} for authenticator {authenticator_id}: {err}"
             )
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully deactivated method {method_type} for authenticator {authenticator_id}")
         return success_response(
@@ -300,4 +309,4 @@ async def deactivate_authenticator_method(authenticator_id: str, method_type: st
         logger.error(
             f"Exception while deactivating method {method_type} for authenticator {authenticator_id}: {exc_name}: {e}"
         )
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

@@ -13,6 +13,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
 
 
 @mcp.tool()
@@ -35,13 +36,13 @@ async def get_user_schema(ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting default user schema: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info("Successfully retrieved default user schema")
         return success_response(schema)
     except Exception as e:
         logger.error(f"Exception while getting default user schema: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -67,13 +68,13 @@ async def get_user_schema_by_type(type_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting user schema for type {type_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved user schema for type {type_id}")
         return success_response(schema)
     except Exception as e:
         logger.error(f"Exception while getting user schema for type {type_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -96,13 +97,13 @@ async def list_user_types(ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while listing user types: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved {len(types) if types else 0} user types")
         return success_response(types or [])
     except Exception as e:
         logger.error(f"Exception while listing user types: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -164,13 +165,13 @@ async def add_user_schema_property(
 
         if err:
             logger.error(f"Okta API error while adding property '{property_name}': {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully added property '{property_name}' to user schema")
         return success_response(schema)
     except Exception as e:
         logger.error(f"Exception while adding property '{property_name}': {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -231,13 +232,13 @@ async def update_user_schema_property(
 
         if err:
             logger.error(f"Okta API error while updating property '{property_name}': {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated property '{property_name}' in user schema")
         return success_response(schema)
     except Exception as e:
         logger.error(f"Exception while updating property '{property_name}': {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -271,13 +272,13 @@ async def remove_user_schema_property(
 
         if err:
             logger.error(f"Okta API error while removing property '{property_name}': {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully removed property '{property_name}' from user schema")
         return success_response(schema)
     except Exception as e:
         logger.error(f"Exception while removing property '{property_name}': {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -303,13 +304,13 @@ async def get_app_user_schema(app_id: str, ctx: Context) -> dict:
 
         if err:
             logger.error(f"Okta API error while getting app user schema for app {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully retrieved app user schema for app {app_id}")
         return success_response(schema)
     except Exception as e:
         logger.error(f"Exception while getting app user schema for app {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))
 
 
 @mcp.tool()
@@ -345,10 +346,10 @@ async def update_app_user_schema(
 
         if err:
             logger.error(f"Okta API error while updating app user schema for app {app_id}: {err}")
-            return error_response(str(err))
+            return error_response(sanitize_error(err))
 
         logger.info(f"Successfully updated app user schema for app {app_id}")
         return success_response(schema)
     except Exception as e:
         logger.error(f"Exception while updating app user schema for app {app_id}: {type(e).__name__}: {e}")
-        return error_response(str(e))
+        return error_response(sanitize_error(e))

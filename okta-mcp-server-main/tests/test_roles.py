@@ -48,9 +48,7 @@ class TestListUserRoles:
     async def test_list_user_roles_error_handling(self, mock_context):
         """Test error handling when listing user roles fails."""
         mock_client = AsyncMock()
-        mock_client.list_assigned_roles_for_user = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_client.list_assigned_roles_for_user = AsyncMock(side_effect=Exception("API error"))
 
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -87,9 +85,7 @@ class TestListGroupRoles:
     async def test_list_group_roles_error_handling(self, mock_context):
         """Test error handling when listing group roles fails."""
         mock_client = AsyncMock()
-        mock_client.list_assigned_roles_for_group = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_client.list_assigned_roles_for_group = AsyncMock(side_effect=Exception("API error"))
 
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -175,9 +171,7 @@ class TestUnassignRoleFromUser:
     async def test_unassign_role_from_user_error_handling(self, mock_context):
         """Test error handling when unassigning role from user fails."""
         mock_client = AsyncMock()
-        mock_client.unassign_role_from_user = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_client.unassign_role_from_user = AsyncMock(side_effect=Exception("API error"))
 
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -267,9 +261,7 @@ class TestUnassignRoleFromGroup:
     async def test_unassign_role_from_group_error_handling(self, mock_context):
         """Test error handling when unassigning role from group fails."""
         mock_client = AsyncMock()
-        mock_client.unassign_role_from_group = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_client.unassign_role_from_group = AsyncMock(side_effect=Exception("API error"))
 
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -292,9 +284,7 @@ class TestListUserRoleTargets:
     """Tests for list_user_role_targets tool."""
 
     @pytest.mark.asyncio
-    async def test_list_user_role_targets_group_success(
-        self, mock_context, mock_okta_client
-    ):
+    async def test_list_user_role_targets_group_success(self, mock_context, mock_okta_client):
         """Test successful listing of group targets for user role."""
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -314,9 +304,7 @@ class TestListUserRoleTargets:
             assert "data" in result
 
     @pytest.mark.asyncio
-    async def test_list_user_role_targets_app_success(
-        self, mock_context, mock_okta_client
-    ):
+    async def test_list_user_role_targets_app_success(self, mock_context, mock_okta_client):
         """Test successful listing of app targets for user role."""
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -339,9 +327,7 @@ class TestListUserRoleTargets:
     async def test_list_user_role_targets_error_handling(self, mock_context):
         """Test error handling when listing role targets fails."""
         mock_client = AsyncMock()
-        mock_client.list_group_targets_for_role = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_client.list_group_targets_for_role = AsyncMock(side_effect=Exception("API error"))
 
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -365,9 +351,7 @@ class TestAddUserRoleTarget:
     """Tests for add_user_role_target tool."""
 
     @pytest.mark.asyncio
-    async def test_add_user_role_target_group_success(
-        self, mock_context, mock_okta_client
-    ):
+    async def test_add_user_role_target_group_success(self, mock_context, mock_okta_client):
         """Test successful addition of group target to user role."""
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -388,9 +372,7 @@ class TestAddUserRoleTarget:
             assert "data" in result
 
     @pytest.mark.asyncio
-    async def test_add_user_role_target_app_success(
-        self, mock_context, mock_okta_client
-    ):
+    async def test_add_user_role_target_app_success(self, mock_context, mock_okta_client):
         """Test successful addition of app target to user role."""
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -414,9 +396,7 @@ class TestAddUserRoleTarget:
     async def test_add_user_role_target_error_handling(self, mock_context):
         """Test error handling when adding role target fails."""
         mock_client = AsyncMock()
-        mock_client.add_group_target_to_role = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_client.add_group_target_to_role = AsyncMock(side_effect=Exception("API error"))
 
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -441,9 +421,7 @@ class TestRemoveUserRoleTarget:
     """Tests for remove_user_role_target tool."""
 
     @pytest.mark.asyncio
-    async def test_remove_user_role_target_group_success(
-        self, mock_context, mock_okta_client
-    ):
+    async def test_remove_user_role_target_group_success(self, mock_context, mock_okta_client):
         """Test successful removal of group target from user role."""
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -464,9 +442,7 @@ class TestRemoveUserRoleTarget:
             assert "data" in result
 
     @pytest.mark.asyncio
-    async def test_remove_user_role_target_app_success(
-        self, mock_context, mock_okta_client
-    ):
+    async def test_remove_user_role_target_app_success(self, mock_context, mock_okta_client):
         """Test successful removal of app target from user role."""
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
@@ -490,9 +466,7 @@ class TestRemoveUserRoleTarget:
     async def test_remove_user_role_target_error_handling(self, mock_context):
         """Test error handling when removing role target fails."""
         mock_client = AsyncMock()
-        mock_client.remove_group_target_from_role = AsyncMock(
-            side_effect=Exception("API error")
-        )
+        mock_client.remove_group_target_from_role = AsyncMock(side_effect=Exception("API error"))
 
         with patch(
             "okta_mcp_server.tools.roles.roles.get_okta_client",
