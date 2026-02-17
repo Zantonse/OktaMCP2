@@ -103,6 +103,14 @@ Tests use pytest-asyncio. `tests/conftest.py` provides mock fixtures for all maj
 ### Commit Messages
 Follow [Conventional Commits](https://www.conventionalcommits.org/): `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`
 
+## Input Validation & Error Handling Patterns
+
+- All tool functions validate ID parameters with `validate_okta_id()` before making API calls
+- All tool functions use `validate_limit()` for limit parameter clamping instead of inline logic
+- All error responses use `sanitize_error()` to strip sensitive data (Okta URLs, tokens) before returning to MCP clients
+- `ctx: Context` is always the first parameter in tool function signatures
+- Exception handling: bare `except Exception` is used as a final catch-all, but API errors from Okta SDK (returned as `err` from tuple unpacking) are handled first
+
 ### Deletion Safety Pattern
 Destructive operations (delete_user, delete_group, delete_application) use a two-step confirmation:
 1. First call returns `{"confirmation_required": True, "message": "..."}`
