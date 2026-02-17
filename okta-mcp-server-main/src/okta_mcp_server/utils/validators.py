@@ -9,7 +9,7 @@
 
 import re
 from datetime import datetime
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 # Regex pattern for validating email addresses
 EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -183,3 +183,37 @@ def validate_profile_dict(profile: Optional[dict], required_fields: list = None)
             return False, f"Missing required profile fields: {', '.join(missing)}"
 
     return True, None
+
+
+def sanitize_error(error: Union[Exception, str]) -> str:
+    """Sanitize an error message for safe MCP tool responses.
+
+    Removes sensitive information like URLs containing okta.com and API tokens/keys.
+    Truncates to 500 characters maximum.
+
+    Args:
+        error: An Exception or string error message
+
+    Returns:
+        A sanitized error string safe for MCP tool responses
+    """
+    # Extract message from Exception if needed
+    if isinstance(error, Exception):
+        message = str(error)
+    else:
+        message = error
+
+    # Strip URLs containing okta.com (they leak org URLs)
+    message = re.sub(r"https?://[^\s]*okta\.com[^\s]*", "[OKTA_URL]", message, flags=re.IGNORECASE)
+
+    # Strip Bearer tokens and API keys (pattern: Bearer followed by alphanumeric/special chars)
+    message = re.sub(r"Bearer\s+[^\s]+", "[BEARER_TOKEN]", message, flags=re.IGNORECASE)
+
+    # Strip other common API key patterns (sk_, pk_, etc.)
+    message = re.sub(r"\b(sk|pk|api|key)_[a-zA-Z0-9_-]{20,}", "[API_KEY]", message, flags=re.IGNORECASE)
+
+    # Truncate to 500 chars max
+    if len(message) > 500:
+        message = message[:497] + "..."
+
+    return message

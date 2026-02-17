@@ -4,6 +4,7 @@ import pytest
 
 from okta_mcp_server.utils.validators import (
     ValidationError,
+    sanitize_error,
     validate_email,
     validate_iso_timestamp,
     validate_limit,
@@ -256,3 +257,73 @@ class TestValidationError:
     def test_is_exception(self):
         with pytest.raises(ValidationError):
             raise ValidationError("field", "error")
+
+
+class TestSanitizeError:
+    """Tests for sanitize_error."""
+
+    def test_sanitize_string_error(self):
+        result = sanitize_error("Something went wrong")
+        assert result == "Something went wrong"
+
+    def test_sanitize_exception_error(self):
+        result = sanitize_error(ValueError("Invalid value"))
+        assert result == "Invalid value"
+
+    def test_strip_okta_url(self):
+        error = "Failed to connect to https://myorg.okta.com/api/v1/users"
+        result = sanitize_error(error)
+        assert "okta.com" not in result
+        assert "[OKTA_URL]" in result
+
+    def test_strip_bearer_token(self):
+        error = "Authorization failed with Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+        result = sanitize_error(error)
+        assert "Bearer" not in result or "[BEARER_TOKEN]" in result
+
+    def test_strip_api_key(self):
+        error = "API key sk_live_abcdef1234567890abcd was invalid"
+        result = sanitize_error(error)
+        assert "sk_live" not in result
+        assert "[API_KEY]" in result
+
+    def test_truncate_long_error(self):
+        long_error = "x" * 600
+        result = sanitize_error(long_error)
+        assert len(result) <= 500
+        assert result.endswith("...")
+
+    def test_no_truncate_short_error(self):
+        short_error = "x" * 100
+        result = sanitize_error(short_error)
+        assert len(result) == 100
+        assert not result.endswith("...")
+
+    def test_sanitize_multiple_urls(self):
+        error = "Failed at https://org1.okta.com and https://org2.okta.com"
+        result = sanitize_error(error)
+        assert "okta.com" not in result
+        assert result.count("[OKTA_URL]") == 2
+
+    def test_sanitize_mixed_sensitive_data(self):
+        error = "Failed at https://myorg.okta.com/api with Bearer token123"
+        result = sanitize_error(error)
+        assert "okta.com" not in result
+        assert "Bearer" not in result or "[BEARER_TOKEN]" in result
+
+    def test_sanitize_exception_with_sensitive_data(self):
+        exc = RuntimeError("Auth failed at https://myorg.okta.com")
+        result = sanitize_error(exc)
+        assert isinstance(result, str)
+        assert "okta.com" not in result
+        assert "[OKTA_URL]" in result
+
+    def test_empty_string(self):
+        result = sanitize_error("")
+        assert result == ""
+
+    def test_okta_id_not_stripped(self):
+        error = "User 00u1abc123def456 not found"
+        result = sanitize_error(error)
+        # Okta IDs like 00u... should NOT be stripped (as per requirements)
+        assert "00u1abc123def456" in result

@@ -10,6 +10,7 @@
 from functools import wraps
 from typing import Callable, TypeVar
 
+import httpx
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -29,6 +30,8 @@ RETRYABLE_EXCEPTIONS = (
     ConnectionError,
     TimeoutError,
     OSError,
+    httpx.TimeoutException,
+    httpx.ConnectError,
 )
 
 

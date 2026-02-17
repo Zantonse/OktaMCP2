@@ -1,6 +1,7 @@
 """Tests for retry utilities."""
 
 import pytest
+import httpx
 
 from okta_mcp_server.utils.retry import RetryableError, retry_on_rate_limit, with_retry
 
@@ -135,8 +136,70 @@ class TestWithRetry:
             raise_type_error()
         assert call_count == 1
 
+    def test_sync_retries_on_httpx_timeout_exception(self):
+        call_count = 0
+
+        @with_retry(max_attempts=3, min_wait=0, max_wait=0)
+        def timeout_then_succeed():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 2:
+                raise httpx.TimeoutException("Request timeout")
+            return "ok"
+
+        result = timeout_then_succeed()
+        assert result == "ok"
+        assert call_count == 2
+
+    def test_sync_retries_on_httpx_connect_error(self):
+        call_count = 0
+
+        @with_retry(max_attempts=3, min_wait=0, max_wait=0)
+        def connect_error_then_succeed():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 2:
+                raise httpx.ConnectError("Connection refused")
+            return "ok"
+
+        result = connect_error_then_succeed()
+        assert result == "ok"
+        assert call_count == 2
+
     @pytest.mark.asyncio
-    async def test_custom_retryable_exceptions(self):
+    async def test_async_retries_on_httpx_timeout_exception(self):
+        call_count = 0
+
+        @with_retry(max_attempts=3, min_wait=0, max_wait=0)
+        async def timeout_then_succeed():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 2:
+                raise httpx.TimeoutException("Request timeout")
+            return "ok"
+
+        result = await timeout_then_succeed()
+        assert result == "ok"
+        assert call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_async_retries_on_httpx_connect_error(self):
+        call_count = 0
+
+        @with_retry(max_attempts=3, min_wait=0, max_wait=0)
+        async def connect_error_then_succeed():
+            nonlocal call_count
+            call_count += 1
+            if call_count < 2:
+                raise httpx.ConnectError("Connection refused")
+            return "ok"
+
+        result = await connect_error_then_succeed()
+        assert result == "ok"
+        assert call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_async_custom_retryable_exceptions(self):
         call_count = 0
 
         @with_retry(max_attempts=3, min_wait=0, max_wait=0, retryable_exceptions=(ValueError,))
@@ -179,6 +242,23 @@ class TestRetryOnRateLimit:
         result = await flaky_call()
         assert result == "ok"
         assert call_count == 2
+
+    @pytest.mark.asyncio
+    async def test_uses_higher_max_attempts(self):
+        """Verify retry_on_rate_limit uses max_attempts=5."""
+        call_count = 0
+
+        @retry_on_rate_limit
+        async def failing_call():
+            nonlocal call_count
+            call_count += 1
+            if call_count <= 4:
+                raise ConnectionError("still failing")
+            return "ok"
+
+        result = await failing_call()
+        assert result == "ok"
+        assert call_count == 5
 
 
 class TestRetryableError:
