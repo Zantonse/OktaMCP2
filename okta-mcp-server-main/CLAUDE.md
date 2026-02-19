@@ -53,12 +53,17 @@ All tools live under `src/okta_mcp_server/tools/`, organized by Okta resource do
 | behaviors | `tools/behaviors/behaviors.py` | Behavior detection rule management |
 | brands | `tools/brands/brands.py` | Brand/theme management |
 | devices | `tools/devices/devices.py` | Device management |
+| device_assurance | `tools/device_assurance/device_assurance.py` | Device assurance policy management |
 | event_hooks | `tools/event_hooks/event_hooks.py` | Event hook management |
+| features | `tools/features/features.py` | Org feature flag management |
 | factors | `tools/factors/factors.py` | MFA factor management |
 | groups | `tools/groups/groups.py` | Group CRUD, membership management |
 | identity_providers | `tools/identity_providers/identity_providers.py` | IdP configuration |
+| inline_hooks | `tools/inline_hooks/inline_hooks.py` | Inline hook management |
 | network_zones | `tools/network_zones/network_zones.py` | Network zone management |
+| org_settings | `tools/org_settings/org_settings.py` | Organization settings |
 | policies | `tools/policies/policies.py` | Policy and policy rule management |
+| profile_mappings | `tools/profile_mappings/profile_mappings.py` | Profile attribute mappings |
 | roles | `tools/roles/roles.py` | Role-based access management |
 | schemas | `tools/schemas/schemas.py` | User/group schema management |
 | sessions | `tools/sessions/sessions.py` | Session management |
@@ -134,7 +139,7 @@ Destructive operations (delete_user, delete_group, delete_application) use a two
 ## Local Modifications
 This fork has local changes tracked in `changes.md`:
 1. `__init__.py` — Removed `asyncio.run()` wrapper (FastMCP handles async internally)
-2. `tools/groups/groups.py` — Made `delete_group` async for consistency
+2. `tools/groups/groups.py` — Changed `delete_group` to sync `def` (two-step deletion pattern)
 3. `tools/policies/policies.py` — Fixed pagination cursor extraction using shared `extract_after_cursor` utility
 4. `utils/auth/auth_manager.py` — Added `sys.exit(1)` on device flow auth failure
 5. `run-server.sh` — Added convenience startup script

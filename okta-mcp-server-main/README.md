@@ -35,7 +35,7 @@ This server is an [Model Context Protocol](https://modelcontextprotocol.io/intro
 * **Secure Authentication:** Supports both Device Authorization Grant for interactive use and Private Key JWT for secure, automated server-to-server communication.
 * **Integration with Okta Admin Management APIs:** Leverages the official Okta APIs to ensure secure and reliable interaction with your Okta org.
 * **Extensible Architecture:** Designed to be easily extended with new functionalities and support for additional Okta API endpoints.
-* **Comprehensive Tool Support:** 169 tools across 19 domains — users, groups, applications, policies, security monitoring, and more.
+* **Comprehensive Tool Support:** 195 tools across 24 domains — users, groups, applications, policies, security monitoring, and more.
 
 This MCP server utilizes [Okta's Python SDK](https://github.com/okta/okta-sdk-python) to communicate with the Okta APIs, ensuring a robust and well-supported integration.
 
@@ -220,7 +220,7 @@ Restart your MCP Client (Claude Desktop, VS Code, etc.) and ask it to help you m
 
 ## 🛠️ Supported Tools
 
-The Okta MCP Server provides **169 tools across 19 domains** for LLMs to interact with your Okta tenant.
+The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interact with your Okta tenant.
 
 ### Overview
 
@@ -236,6 +236,7 @@ The Okta MCP Server provides **169 tools across 19 domains** for LLMs to interac
 | **Security** | Authorization Servers | 14 | OAuth server, scopes, claims, policies |
 | **Security** | Authenticators | 8 | Authenticator and method configuration |
 | **Security** | Factors | 6 | MFA factor enrollment and verification |
+| **Security** | Device Assurance | 6 | Device posture policy management |
 | **Monitoring** | System Logs | 1 | System log retrieval with filtering |
 | **Monitoring** | Behavior Rules | 8 | Behavior detection rule management |
 | **Monitoring** | ThreatInsight | 2 | Threat detection configuration |
@@ -243,8 +244,12 @@ The Okta MCP Server provides **169 tools across 19 domains** for LLMs to interac
 | **Infrastructure** | Network Zones | 8 | IP/dynamic zone management |
 | **Infrastructure** | Event Hooks | 9 | Webhook event hook management |
 | **Infrastructure** | Identity Providers | 8 | External IdP configuration |
+| **Infrastructure** | Inline Hooks | 9 | Logic injection hook management |
+| **Infrastructure** | Profile Mappings | 3 | Attribute mapping management |
 | **Infrastructure** | Devices | 5 | Device inventory and management |
 | **Infrastructure** | Brands | 12 | Brand, theme, and email customization |
+| **Administration** | Features | 4 | Org feature flag management |
+| **Administration** | Org Settings | 4 | Organization configuration |
 
 ---
 
@@ -419,6 +424,17 @@ The Okta MCP Server provides **169 tools across 19 domains** for LLMs to interac
 | `reset_factor` | Remove a factor | `user_id`, `factor_id` |
 | `verify_factor` | Verify a factor challenge | `user_id`, `factor_id`, `pass_code` |
 
+#### Device Assurance
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_device_assurance_policies` | List all device assurance policies | _(none)_ |
+| `get_device_assurance_policy` | Get a policy by ID | `policy_id` |
+| `create_device_assurance_policy` | Create a new policy | `name`, `platform`, `policy_config` |
+| `update_device_assurance_policy` | Update a policy | `policy_id`, `policy_config` |
+| `delete_device_assurance_policy` | Delete a policy (confirmation required) | `policy_id` |
+| `confirm_delete_device_assurance_policy` | Confirm and execute deletion | `policy_id`, `confirmation` |
+
 ---
 
 ### Security Monitoring
@@ -490,6 +506,28 @@ The Okta MCP Server provides **169 tools across 19 domains** for LLMs to interac
 | `deactivate_event_hook` | Deactivate an event hook | `event_hook_id` |
 | `verify_event_hook` | Verify an event hook endpoint | `event_hook_id` |
 
+#### Inline Hooks
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_inline_hooks` | List all inline hooks | `type` |
+| `get_inline_hook` | Get an inline hook by ID | `inline_hook_id` |
+| `create_inline_hook` | Create a new inline hook | `name`, `hook_type`, `url`, `headers` |
+| `update_inline_hook` | Update an inline hook | `inline_hook_id`, `name`, `url`, `headers` |
+| `delete_inline_hook` | Delete an inline hook (confirmation required) | `inline_hook_id` |
+| `confirm_delete_inline_hook` | Confirm and execute deletion | `inline_hook_id`, `confirmation` |
+| `activate_inline_hook` | Activate an inline hook | `inline_hook_id` |
+| `deactivate_inline_hook` | Deactivate an inline hook | `inline_hook_id` |
+| `execute_inline_hook` | Execute an inline hook for testing | `inline_hook_id`, `payload` |
+
+#### Profile Mappings
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_profile_mappings` | List all profile mappings | `source_id`, `target_id`, `after`, `limit` |
+| `get_profile_mapping` | Get a profile mapping by ID | `mapping_id` |
+| `update_profile_mapping` | Update a profile mapping | `mapping_id`, `mapping_config` |
+
 #### Identity Providers
 
 | Tool | Description | Key Parameters |
@@ -529,6 +567,28 @@ The Okta MCP Server provides **169 tools across 19 domains** for LLMs to interac
 | `update_email_template` | Update an email template | `brand_id`, `template_name`, `template_config` |
 | `get_signin_page` | Get sign-in page customization | `brand_id` |
 | `update_signin_page` | Update sign-in page customization | `brand_id`, `page_config` |
+
+---
+
+### Administration
+
+#### Features
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_features` | List all org features | _(none)_ |
+| `get_feature` | Get a feature by ID | `feature_id` |
+| `enable_feature` | Enable a feature | `feature_id`, `mode` |
+| `disable_feature` | Disable a feature | `feature_id`, `mode` |
+
+#### Org Settings
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `get_org_settings` | Get organization settings | _(none)_ |
+| `update_org_settings` | Update organization settings | `settings` |
+| `get_org_contact_types` | Get available contact types | _(none)_ |
+| `get_org_contact_user` | Get contact user by type | `contact_type` |
 
 ## 🔐 Authentication
 
