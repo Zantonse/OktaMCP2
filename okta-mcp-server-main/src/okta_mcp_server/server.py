@@ -65,9 +65,12 @@ def main():
 
     logger.info("Starting Okta MCP Server")
     from okta_mcp_server.tools.applications import applications  # noqa: F401
-    from okta_mcp_server.tools.authenticators import authenticators  # noqa: F401
     from okta_mcp_server.tools.auth_servers import auth_servers  # noqa: F401
+    from okta_mcp_server.tools.authenticators import authenticators  # noqa: F401
+    from okta_mcp_server.tools.behaviors import behaviors  # noqa: F401
     from okta_mcp_server.tools.brands import brands  # noqa: F401
+    from okta_mcp_server.tools.devices import devices  # noqa: F401
+    from okta_mcp_server.tools.event_hooks import event_hooks  # noqa: F401
     from okta_mcp_server.tools.factors import factors  # noqa: F401
     from okta_mcp_server.tools.groups import groups  # noqa: F401
     from okta_mcp_server.tools.identity_providers import identity_providers  # noqa: F401
@@ -75,7 +78,9 @@ def main():
     from okta_mcp_server.tools.policies import policies  # noqa: F401
     from okta_mcp_server.tools.roles import roles  # noqa: F401
     from okta_mcp_server.tools.schemas import schemas  # noqa: F401
+    from okta_mcp_server.tools.sessions import sessions  # noqa: F401
     from okta_mcp_server.tools.system_logs import system_logs  # noqa: F401
+    from okta_mcp_server.tools.threat_insight import threat_insight  # noqa: F401
     from okta_mcp_server.tools.trusted_origins import trusted_origins  # noqa: F401
     from okta_mcp_server.tools.users import users  # noqa: F401
 

@@ -250,6 +250,21 @@ class MockAuthenticatorMethod:
 
 
 @dataclass
+class MockBehaviorRule:
+    """Mock Okta behavior detection rule object."""
+
+    id: str = "bhv1abc123"
+    name: str = "Test Behavior Rule"
+    type: str = "ANOMALY_VELOCITY"
+    status: str = "ACTIVE"
+    settings: dict = None
+
+    def __post_init__(self):
+        if self.settings is None:
+            self.settings = {"maxEventsUsedForEvaluation": 50}
+
+
+@dataclass
 class MockEmailTemplate:
     """Mock Okta email template object."""
 
@@ -262,6 +277,73 @@ class MockSignInPage:
     """Mock Okta sign-in page object."""
 
     widget_version: str = "^5"
+
+
+@dataclass
+class MockSession:
+    """Mock Okta session object."""
+
+    id: str = "ses1abc123def456"
+    userId: str = "00u1abc123def456"
+    createdAt: str = "2024-01-01T00:00:00.000Z"
+    expiresAt: str = "2024-01-01T01:00:00.000Z"
+    lastPasswordVerification: str = "2024-01-01T00:00:00.000Z"
+    lastFactorVerification: str = "2024-01-01T00:00:00.000Z"
+    amr: list = None
+    idp: dict = None
+    mfaActive: bool = False
+
+    def __post_init__(self):
+        if self.amr is None:
+            self.amr = ["pwd"]
+        if self.idp is None:
+            self.idp = {"id": "00o1abc123", "type": "OKTA"}
+
+
+@dataclass
+class MockEventHook:
+    """Mock Okta event hook object."""
+
+    id: str = "who1abc123"
+    name: str = "Test Event Hook"
+    status: str = "ACTIVE"
+    events: dict = None
+    channel: dict = None
+
+    def __post_init__(self):
+        if self.events is None:
+            self.events = {"type": "EVENT_TYPE", "items": ["user.lifecycle.create"]}
+        if self.channel is None:
+            self.channel = {"type": "HTTP", "version": "1.0.0", "config": {"uri": "https://example.com/hook"}}
+
+
+@dataclass
+class MockDevice:
+    """Mock Okta device object."""
+
+    id: str = "guo1abc123"
+    status: str = "ACTIVE"
+    display_name: str = "Test Device"
+    platform: str = "MACOS"
+    manufacturer: str = "Apple"
+    model: str = "MacBook Pro"
+
+
+@dataclass
+class MockThreatInsightConfiguration:
+    """Mock Okta ThreatInsight configuration object."""
+
+    action: str = "audit"
+    exclude_zones: list = None
+    created: str = "2024-01-01T00:00:00.000Z"
+    last_updated: str = "2024-01-01T00:00:00.000Z"
+    _links: dict = None
+
+    def __post_init__(self):
+        if self.exclude_zones is None:
+            self.exclude_zones = []
+        if self._links is None:
+            self._links = {}
 
 
 class MockOktaResponse:
@@ -668,6 +750,27 @@ class MockOktaClient:
     async def deactivate_authenticator_method(self, authenticator_id, method_type):
         return MockAuthenticatorMethod(type=method_type, status="INACTIVE"), None
 
+    async def list_behavior_detection_rules(self):
+        return [MockBehaviorRule()], MockOktaResponse(), None
+
+    async def get_behavior_detection_rule(self, behavior_id):
+        return MockBehaviorRule(id=behavior_id), MockOktaResponse(), None
+
+    async def create_behavior_detection_rule(self, body):
+        return MockBehaviorRule(), MockOktaResponse(), None
+
+    async def update_behavior_detection_rule(self, behavior_id, body):
+        return MockBehaviorRule(id=behavior_id), MockOktaResponse(), None
+
+    async def delete_behavior_detection_rule(self, behavior_id):
+        return None, None
+
+    async def activate_behavior_detection_rule(self, behavior_id):
+        return MockBehaviorRule(id=behavior_id, status="ACTIVE"), MockOktaResponse(), None
+
+    async def deactivate_behavior_detection_rule(self, behavior_id):
+        return MockBehaviorRule(id=behavior_id, status="INACTIVE"), MockOktaResponse(), None
+
     async def list_policies(self, params):
         return [MockPolicy()], MockOktaResponse(), None
 
@@ -762,6 +865,68 @@ class MockOktaClient:
             for i in range(3)
         ]
         return logs, MockOktaResponse(), None
+
+    async def get_session(self, session_id):
+        return MockSession(id=session_id), MockOktaResponse(), None
+
+    async def create_session(self, body):
+        return MockSession(), MockOktaResponse(), None
+
+    async def refresh_session(self, session_id):
+        return MockSession(id=session_id), MockOktaResponse(), None
+
+    async def close_session(self, session_id):
+        return None, None
+
+    async def revoke_user_sessions(self, user_id):
+        return None, None
+
+    async def list_event_hooks(self):
+        return [MockEventHook()], MockOktaResponse(), None
+
+    async def get_event_hook(self, event_hook_id):
+        return MockEventHook(id=event_hook_id), MockOktaResponse(), None
+
+    async def create_event_hook(self, body):
+        return MockEventHook(), MockOktaResponse(), None
+
+    async def update_event_hook(self, event_hook_id, body):
+        return MockEventHook(id=event_hook_id), MockOktaResponse(), None
+
+    async def delete_event_hook(self, event_hook_id):
+        return None, None
+
+    async def activate_event_hook(self, event_hook_id):
+        return MockEventHook(id=event_hook_id, status="ACTIVE"), MockOktaResponse(), None
+
+    async def deactivate_event_hook(self, event_hook_id):
+        return MockEventHook(id=event_hook_id, status="INACTIVE"), MockOktaResponse(), None
+
+    async def verify_event_hook(self, event_hook_id):
+        return MockEventHook(id=event_hook_id, status="VERIFIED"), MockOktaResponse(), None
+
+    async def list_devices(self):
+        return [MockDevice()], MockOktaResponse(), None
+
+    async def get_device(self, device_id):
+        return MockDevice(id=device_id), MockOktaResponse(), None
+
+    async def delete_device(self, device_id):
+        return None, None
+
+    async def list_user_devices(self, user_id):
+        return [MockDevice()], MockOktaResponse(), None
+
+    async def get_current_configuration(self):
+        return MockThreatInsightConfiguration(), MockOktaResponse(), None
+
+    async def update_configuration(self, body):
+        config = MockThreatInsightConfiguration()
+        if "action" in body:
+            config.action = body["action"]
+        if "excludeZones" in body:
+            config.exclude_zones = body["excludeZones"]
+        return config, MockOktaResponse(), None
 
 
 class MockOktaAuthManager:
