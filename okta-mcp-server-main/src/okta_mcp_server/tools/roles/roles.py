@@ -1,8 +1,8 @@
 # The Okta software accompanied by this notice is provided pursuant to the following terms:
 # Copyright © 2025-Present, Okta, Inc.
-# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.  # noqa: E501
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0.
-# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  # noqa: E501
+# Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
 from loguru import logger
@@ -11,7 +11,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
-from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
+from okta_mcp_server.utils.validators import sanitize_error, validate_okta_id
 
 # ============================================================================
 # Roles Management Operations
@@ -45,7 +45,7 @@ def list_roles(ctx: Context) -> dict:
 
 
 @mcp.tool()
-async def list_user_roles(user_id: str, ctx: Context) -> dict:
+async def list_user_roles(ctx: Context, user_id: str) -> dict:
     """List roles assigned to a user.
 
     Parameters:
@@ -55,6 +55,10 @@ async def list_user_roles(user_id: str, ctx: Context) -> dict:
         Dict with list of roles assigned to the user.
     """
     logger.info(f"Listing roles for user: {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -76,7 +80,7 @@ async def list_user_roles(user_id: str, ctx: Context) -> dict:
 
 
 @mcp.tool()
-async def list_group_roles(group_id: str, ctx: Context) -> dict:
+async def list_group_roles(ctx: Context, group_id: str) -> dict:
     """List roles assigned to a group.
 
     Parameters:
@@ -86,6 +90,10 @@ async def list_group_roles(group_id: str, ctx: Context) -> dict:
         Dict with list of roles assigned to the group.
     """
     logger.info(f"Listing roles for group: {group_id}")
+
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -107,7 +115,7 @@ async def list_group_roles(group_id: str, ctx: Context) -> dict:
 
 
 @mcp.tool()
-async def assign_role_to_user(user_id: str, role_type: str, ctx: Context) -> dict:
+async def assign_role_to_user(ctx: Context, user_id: str, role_type: str) -> dict:
     """Assign an admin role to a user.
 
     Parameters:
@@ -118,6 +126,10 @@ async def assign_role_to_user(user_id: str, role_type: str, ctx: Context) -> dic
         Dict with the assigned role details.
     """
     logger.info(f"Assigning role '{role_type}' to user {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -142,7 +154,7 @@ async def assign_role_to_user(user_id: str, role_type: str, ctx: Context) -> dic
 
 
 @mcp.tool()
-async def unassign_role_from_user(user_id: str, role_id: str, ctx: Context) -> dict:
+async def unassign_role_from_user(ctx: Context, user_id: str, role_id: str) -> dict:
     """Remove a role from a user.
 
     Parameters:
@@ -153,6 +165,14 @@ async def unassign_role_from_user(user_id: str, role_id: str, ctx: Context) -> d
         Dict with success status and result of the operation.
     """
     logger.info(f"Removing role {role_id} from user {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(role_id, "role_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -174,7 +194,7 @@ async def unassign_role_from_user(user_id: str, role_id: str, ctx: Context) -> d
 
 
 @mcp.tool()
-async def assign_role_to_group(group_id: str, role_type: str, ctx: Context) -> dict:
+async def assign_role_to_group(ctx: Context, group_id: str, role_type: str) -> dict:
     """Assign an admin role to a group.
 
     Parameters:
@@ -185,6 +205,10 @@ async def assign_role_to_group(group_id: str, role_type: str, ctx: Context) -> d
         Dict with the assigned role details.
     """
     logger.info(f"Assigning role '{role_type}' to group {group_id}")
+
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -209,7 +233,7 @@ async def assign_role_to_group(group_id: str, role_type: str, ctx: Context) -> d
 
 
 @mcp.tool()
-async def unassign_role_from_group(group_id: str, role_id: str, ctx: Context) -> dict:
+async def unassign_role_from_group(ctx: Context, group_id: str, role_id: str) -> dict:
     """Remove a role from a group.
 
     Parameters:
@@ -220,6 +244,14 @@ async def unassign_role_from_group(group_id: str, role_id: str, ctx: Context) ->
         Dict with success status and result of the operation.
     """
     logger.info(f"Removing role {role_id} from group {group_id}")
+
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(role_id, "role_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -242,9 +274,9 @@ async def unassign_role_from_group(group_id: str, role_id: str, ctx: Context) ->
 
 @mcp.tool()
 async def list_user_role_targets(
+    ctx: Context,
     user_id: str,
     role_id: str,
-    ctx: Context,
     target_type: str = "GROUP",
 ) -> dict:
     """List targets for a scoped admin role assignment.
@@ -258,6 +290,14 @@ async def list_user_role_targets(
         Dict with list of targets (groups or apps) for this role.
     """
     logger.info(f"Listing {target_type} targets for role {role_id} assigned to user {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(role_id, "role_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -286,11 +326,11 @@ async def list_user_role_targets(
 
 @mcp.tool()
 async def add_user_role_target(
+    ctx: Context,
     user_id: str,
     role_id: str,
     target_type: str,
     target_id: str,
-    ctx: Context,
 ) -> dict:
     """Add a target (group or app) to a scoped admin role assignment.
 
@@ -304,6 +344,18 @@ async def add_user_role_target(
         Dict with success status and result of the operation.
     """
     logger.info(f"Adding {target_type} target {target_id} to role {role_id} for user {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(role_id, "role_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(target_id, "target_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -330,11 +382,11 @@ async def add_user_role_target(
 
 @mcp.tool()
 async def remove_user_role_target(
+    ctx: Context,
     user_id: str,
     role_id: str,
     target_type: str,
     target_id: str,
-    ctx: Context,
 ) -> dict:
     """Remove a target (group or app) from a scoped admin role assignment.
 
@@ -348,6 +400,18 @@ async def remove_user_role_target(
         Dict with success status and result of the operation.
     """
     logger.info(f"Removing {target_type} target {target_id} from role {role_id} for user {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(role_id, "role_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(target_id, "target_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 

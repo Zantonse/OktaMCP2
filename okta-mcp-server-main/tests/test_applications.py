@@ -166,7 +166,7 @@ class TestDeleteApplication:
         ):
             from okta_mcp_server.tools.applications.applications import delete_application
 
-            result = await delete_application(app_id="0oa1abc123def456", ctx=mock_context)
+            result = delete_application(app_id="0oa1abc123def456", ctx=mock_context)
 
             assert result.get("success") is True
             assert result.get("data", {}).get("confirmation_required") is True

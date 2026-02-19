@@ -207,6 +207,10 @@ async def update_identity_provider(
     """
     logger.info(f"Updating identity provider with ID: {idp_id}")
 
+    valid, err_msg = validate_okta_id(idp_id, "idp_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -259,6 +263,10 @@ def delete_identity_provider(ctx: Context, idp_id: str) -> dict:
     """
     logger.warning(f"Deletion requested for identity provider {idp_id}, awaiting confirmation")
 
+    valid, err_msg = validate_okta_id(idp_id, "idp_id")
+    if not valid:
+        return error_response(err_msg)
+
     return success_response(
         {
             "confirmation_required": True,
@@ -283,6 +291,10 @@ async def confirm_delete_identity_provider(ctx: Context, idp_id: str, confirmati
         Dict with success status and result of the deletion operation.
     """
     logger.info(f"Processing deletion confirmation for identity provider {idp_id}")
+
+    valid, err_msg = validate_okta_id(idp_id, "idp_id")
+    if not valid:
+        return error_response(err_msg)
 
     if confirmation != "DELETE":
         logger.warning(f"Identity provider deletion cancelled for {idp_id} - incorrect confirmation")
@@ -324,6 +336,10 @@ async def activate_identity_provider(ctx: Context, idp_id: str) -> dict:
     """
     logger.info(f"Activating identity provider: {idp_id}")
 
+    valid, err_msg = validate_okta_id(idp_id, "idp_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -354,6 +370,10 @@ async def deactivate_identity_provider(ctx: Context, idp_id: str) -> dict:
         Dict with success status and result of the deactivation operation.
     """
     logger.info(f"Deactivating identity provider: {idp_id}")
+
+    valid, err_msg = validate_okta_id(idp_id, "idp_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 

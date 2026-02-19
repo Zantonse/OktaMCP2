@@ -315,6 +315,10 @@ async def activate_trusted_origin(ctx: Context, origin_id: str) -> dict:
     """
     logger.info(f"Activating trusted origin: {origin_id}")
 
+    valid, err_msg = validate_okta_id(origin_id, "origin_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -345,6 +349,10 @@ async def deactivate_trusted_origin(ctx: Context, origin_id: str) -> dict:
         Dict with success status and result of the deactivation operation.
     """
     logger.info(f"Deactivating trusted origin: {origin_id}")
+
+    valid, err_msg = validate_okta_id(origin_id, "origin_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 

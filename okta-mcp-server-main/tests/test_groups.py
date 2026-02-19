@@ -120,7 +120,7 @@ class TestDeleteGroup:
         """Test that delete_group returns confirmation request."""
         from okta_mcp_server.tools.groups.groups import delete_group
 
-        result = await delete_group(group_id="00g1abc123def456", ctx=mock_context)
+        result = delete_group(group_id="00g1abc123def456", ctx=mock_context)
 
         assert result.get("success") is True
         assert result.get("data", {}).get("confirmation_required") is True

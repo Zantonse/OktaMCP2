@@ -14,7 +14,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
-from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
+from okta_mcp_server.utils.validators import sanitize_error, validate_okta_id
 
 # ============================================================================
 # Authenticators CRUD Operations
@@ -101,6 +101,10 @@ async def activate_authenticator(authenticator_id: str, ctx: Context) -> dict:
     """
     logger.info(f"Activating authenticator: {authenticator_id}")
 
+    valid, err_msg = validate_okta_id(authenticator_id, "authenticator_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -172,6 +176,10 @@ async def list_authenticator_methods(authenticator_id: str, ctx: Context) -> dic
     """
     logger.info(f"Listing methods for authenticator: {authenticator_id}")
 
+    valid, err_msg = validate_okta_id(authenticator_id, "authenticator_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -204,6 +212,10 @@ async def get_authenticator_method(authenticator_id: str, method_type: str, ctx:
         Dict with method details and settings.
     """
     logger.info(f"Getting method {method_type} for authenticator {authenticator_id}")
+
+    valid, err_msg = validate_okta_id(authenticator_id, "authenticator_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -247,6 +259,10 @@ async def activate_authenticator_method(authenticator_id: str, method_type: str,
     """
     logger.info(f"Activating method {method_type} for authenticator {authenticator_id}")
 
+    valid, err_msg = validate_okta_id(authenticator_id, "authenticator_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -285,6 +301,10 @@ async def deactivate_authenticator_method(authenticator_id: str, method_type: st
         Dict with success status and result of the deactivation operation.
     """
     logger.info(f"Deactivating method {method_type} for authenticator {authenticator_id}")
+
+    valid, err_msg = validate_okta_id(authenticator_id, "authenticator_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 

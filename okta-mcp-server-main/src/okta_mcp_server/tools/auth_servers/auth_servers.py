@@ -110,6 +110,10 @@ async def get_authorization_server(ctx: Context, auth_server_id: str) -> dict:
     """
     logger.info(f"Getting authorization server with ID: {auth_server_id}")
 
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -194,6 +198,10 @@ async def update_authorization_server(
     """
     logger.info(f"Updating authorization server with ID: {auth_server_id}")
 
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -245,6 +253,10 @@ def delete_authorization_server(ctx: Context, auth_server_id: str) -> dict:
     """
     logger.warning(f"Deletion requested for authorization server {auth_server_id}, awaiting confirmation")
 
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
+
     return success_response(
         {
             "confirmation_required": True,
@@ -269,6 +281,10 @@ async def confirm_delete_authorization_server(ctx: Context, auth_server_id: str,
         Dict with success status and result of the deletion operation.
     """
     logger.info(f"Processing deletion confirmation for authorization server {auth_server_id}")
+
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
 
     if confirmation != "DELETE":
         logger.warning(f"Authorization server deletion cancelled for {auth_server_id} - incorrect confirmation")
@@ -310,6 +326,10 @@ async def activate_authorization_server(ctx: Context, auth_server_id: str) -> di
     """
     logger.info(f"Activating authorization server: {auth_server_id}")
 
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -340,6 +360,10 @@ async def deactivate_authorization_server(ctx: Context, auth_server_id: str) -> 
         Dict with success status and result of the deactivation operation.
     """
     logger.info(f"Deactivating authorization server: {auth_server_id}")
+
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -392,6 +416,10 @@ async def list_auth_server_policies(
     """
     logger.info(f"Listing policies for authorization server: {auth_server_id}")
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
+
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
 
     # Validate limit parameter range
     limit, limit_warning = validate_limit(limit)
@@ -455,6 +483,10 @@ async def create_auth_server_policy(
     logger.info(f"Creating new policy for authorization server: {auth_server_id}")
     logger.debug(f"Policy name: {policy_config.get('name', 'N/A')}")
 
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -506,6 +538,10 @@ async def list_auth_server_scopes(
     """
     logger.info(f"Listing scopes for authorization server: {auth_server_id}")
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
+
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
 
     # Validate limit parameter range
     limit, limit_warning = validate_limit(limit)
@@ -574,6 +610,10 @@ async def create_auth_server_scope(
     logger.info(f"Creating new scope for authorization server: {auth_server_id}")
     logger.debug(f"Scope name: {name}")
 
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -634,6 +674,10 @@ async def list_auth_server_claims(
     """
     logger.info(f"Listing claims for authorization server: {auth_server_id}")
     logger.debug(f"Query parameters: limit={limit}, fetch_all={fetch_all}, after={after}")
+
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
 
     # Validate limit parameter range
     limit, limit_warning = validate_limit(limit)
@@ -703,6 +747,10 @@ async def create_auth_server_claim(
     """
     logger.info(f"Creating new claim for authorization server: {auth_server_id}")
     logger.debug(f"Claim name: {name}")
+
+    valid, err_msg = validate_okta_id(auth_server_id, "auth_server_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 

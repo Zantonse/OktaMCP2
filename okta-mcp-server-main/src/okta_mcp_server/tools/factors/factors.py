@@ -13,7 +13,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
-from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
+from okta_mcp_server.utils.validators import sanitize_error, validate_okta_id
 
 # ============================================================================
 # Factors Management Operations
@@ -31,6 +31,10 @@ async def list_user_factors(user_id: str, ctx: Context) -> dict:
         Dict with list of enrolled factors.
     """
     logger.info(f"Listing factors for user: {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -63,6 +67,14 @@ async def get_user_factor(user_id: str, factor_id: str, ctx: Context) -> dict:
         Dict with factor details.
     """
     logger.info(f"Getting factor {factor_id} for user {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(factor_id, "factor_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -104,6 +116,10 @@ async def enroll_factor(
     """
     logger.info(f"Enrolling factor type '{factor_type}' for user {user_id}")
     logger.debug(f"Provider: {provider}, Profile: {profile}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -150,6 +166,14 @@ async def activate_factor(
     """
     logger.info(f"Activating factor {factor_id} for user {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(factor_id, "factor_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -189,6 +213,14 @@ async def reset_factor(user_id: str, factor_id: str, ctx: Context) -> dict:
     """
     logger.info(f"Resetting factor {factor_id} for user {user_id}")
 
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(factor_id, "factor_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -226,6 +258,14 @@ async def verify_factor(
         Dict with verification result.
     """
     logger.info(f"Verifying factor {factor_id} for user {user_id}")
+
+    valid, err_msg = validate_okta_id(user_id, "user_id")
+    if not valid:
+        return error_response(err_msg)
+
+    valid, err_msg = validate_okta_id(factor_id, "factor_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 

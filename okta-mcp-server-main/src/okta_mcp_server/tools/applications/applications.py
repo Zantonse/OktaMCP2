@@ -208,7 +208,7 @@ async def update_application(ctx: Context, app_id: str, app_config: Dict[str, An
 
 
 @mcp.tool()
-async def delete_application(ctx: Context, app_id: str) -> dict:
+def delete_application(ctx: Context, app_id: str) -> dict:
     """Delete an application by ID from the Okta organization.
 
     This tool deletes an application by its ID from the Okta organization, but requires confirmation.
@@ -223,6 +223,10 @@ async def delete_application(ctx: Context, app_id: str) -> dict:
         Dict containing the confirmation request.
     """
     logger.warning(f"Deletion requested for application {app_id}, awaiting confirmation")
+
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
 
     return success_response(
         {

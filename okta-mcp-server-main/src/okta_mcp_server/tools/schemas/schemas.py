@@ -13,7 +13,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
-from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
+from okta_mcp_server.utils.validators import sanitize_error, validate_okta_id
 
 
 @mcp.tool()
@@ -46,7 +46,7 @@ async def get_user_schema(ctx: Context) -> dict:
 
 
 @mcp.tool()
-async def get_user_schema_by_type(type_id: str, ctx: Context) -> dict:
+async def get_user_schema_by_type(ctx: Context, type_id: str) -> dict:
     """Get schema for a specific user type.
 
     Retrieves the user profile schema for a specific user type ID.
@@ -108,8 +108,8 @@ async def list_user_types(ctx: Context) -> dict:
 
 @mcp.tool()
 async def add_user_schema_property(
-    property_name: str,
     ctx: Context,
+    property_name: str,
     type_id: str = "default",
     property_config: Optional[dict[str, Any]] = None,
 ) -> dict:
@@ -176,8 +176,8 @@ async def add_user_schema_property(
 
 @mcp.tool()
 async def update_user_schema_property(
-    property_name: str,
     ctx: Context,
+    property_name: str,
     type_id: str = "default",
     property_config: Optional[dict[str, Any]] = None,
 ) -> dict:
@@ -243,8 +243,8 @@ async def update_user_schema_property(
 
 @mcp.tool()
 async def remove_user_schema_property(
-    property_name: str,
     ctx: Context,
+    property_name: str,
     type_id: str = "default",
 ) -> dict:
     """Remove a custom attribute from the user schema.
@@ -282,7 +282,7 @@ async def remove_user_schema_property(
 
 
 @mcp.tool()
-async def get_app_user_schema(app_id: str, ctx: Context) -> dict:
+async def get_app_user_schema(ctx: Context, app_id: str) -> dict:
     """Get app-specific user profile schema.
 
     Retrieves the user profile schema for a specific application.
@@ -294,6 +294,10 @@ async def get_app_user_schema(app_id: str, ctx: Context) -> dict:
         Dict with the app-specific user profile schema.
     """
     logger.info(f"Getting app user schema for app: {app_id}")
+
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
@@ -315,8 +319,8 @@ async def get_app_user_schema(app_id: str, ctx: Context) -> dict:
 
 @mcp.tool()
 async def update_app_user_schema(
-    app_id: str,
     ctx: Context,
+    app_id: str,
     schema_config: Optional[dict[str, Any]] = None,
 ) -> dict:
     """Update app-specific user profile schema.
@@ -334,6 +338,10 @@ async def update_app_user_schema(
         Dict with updated app user profile schema.
     """
     logger.info(f"Updating app user schema for app: {app_id}")
+
+    valid, err_msg = validate_okta_id(app_id, "app_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 

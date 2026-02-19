@@ -16,7 +16,7 @@ from mcp.server.fastmcp import Context
 from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.response import error_response, success_response
-from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
+from okta_mcp_server.utils.validators import sanitize_error, validate_okta_id
 
 # ============================================================================
 # Brand Management Operations

@@ -14,7 +14,7 @@ from okta_mcp_server.server import mcp
 from okta_mcp_server.utils.client import get_okta_client
 from okta_mcp_server.utils.pagination import build_query_params, create_paginated_response, paginate_all_results
 from okta_mcp_server.utils.response import error_response
-from okta_mcp_server.utils.validators import sanitize_error, validate_limit, validate_okta_id
+from okta_mcp_server.utils.validators import sanitize_error, validate_limit
 
 
 @mcp.tool()

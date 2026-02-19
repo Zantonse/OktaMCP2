@@ -99,6 +99,6 @@ def retry_on_rate_limit(func: Callable[..., T]) -> Callable[..., T]:
 class RetryableError(Exception):
     """Custom exception to indicate an error that should be retried."""
 
-    def __init__(self, message: str, original_error: Exception = None):
+    def __init__(self, message: str, original_error: Exception | None = None):
         super().__init__(message)
         self.original_error = original_error

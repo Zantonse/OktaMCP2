@@ -175,7 +175,7 @@ async def create_group(ctx: Context, profile: dict) -> dict:
 
 
 @mcp.tool()
-async def delete_group(ctx: Context, group_id: str) -> dict:
+def delete_group(ctx: Context, group_id: str) -> dict:
     """Delete a group by ID from the Okta organization.
 
     This tool deletes a group by its ID from the Okta organization, but requires confirmation. Wait for the
@@ -191,6 +191,10 @@ async def delete_group(ctx: Context, group_id: str) -> dict:
         Dict containing the confirmation request.
     """
     logger.warning(f"Deletion requested for group {group_id}, awaiting confirmation")
+
+    valid, err_msg = validate_okta_id(group_id, "group_id")
+    if not valid:
+        return error_response(err_msg)
 
     return success_response(
         {

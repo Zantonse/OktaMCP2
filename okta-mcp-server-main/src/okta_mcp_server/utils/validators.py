@@ -161,7 +161,7 @@ def validate_required_string(value: Optional[str], field_name: str) -> Tuple[boo
     return True, None
 
 
-def validate_profile_dict(profile: Optional[dict], required_fields: list = None) -> Tuple[bool, Optional[str]]:
+def validate_profile_dict(profile: Optional[dict], required_fields: list | None = None) -> Tuple[bool, Optional[str]]:
     """Validate a profile dictionary.
 
     Args:

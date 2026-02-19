@@ -198,6 +198,10 @@ async def update_network_zone(
     """
     logger.info(f"Updating network zone with ID: {zone_id}")
 
+    valid, err_msg = validate_okta_id(zone_id, "zone_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -249,6 +253,10 @@ def delete_network_zone(ctx: Context, zone_id: str) -> dict:
     """
     logger.warning(f"Deletion requested for network zone {zone_id}, awaiting confirmation")
 
+    valid, err_msg = validate_okta_id(zone_id, "zone_id")
+    if not valid:
+        return error_response(err_msg)
+
     return success_response(
         {
             "confirmation_required": True,
@@ -273,6 +281,10 @@ async def confirm_delete_network_zone(ctx: Context, zone_id: str, confirmation: 
         Dict with success status and result of the deletion operation.
     """
     logger.info(f"Processing deletion confirmation for network zone {zone_id}")
+
+    valid, err_msg = validate_okta_id(zone_id, "zone_id")
+    if not valid:
+        return error_response(err_msg)
 
     if confirmation != "DELETE":
         logger.warning(f"Network zone deletion cancelled for {zone_id} - incorrect confirmation")
@@ -314,6 +326,10 @@ async def activate_network_zone(ctx: Context, zone_id: str) -> dict:
     """
     logger.info(f"Activating network zone: {zone_id}")
 
+    valid, err_msg = validate_okta_id(zone_id, "zone_id")
+    if not valid:
+        return error_response(err_msg)
+
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
     try:
@@ -344,6 +360,10 @@ async def deactivate_network_zone(ctx: Context, zone_id: str) -> dict:
         Dict with success status and result of the deactivation operation.
     """
     logger.info(f"Deactivating network zone: {zone_id}")
+
+    valid, err_msg = validate_okta_id(zone_id, "zone_id")
+    if not valid:
+        return error_response(err_msg)
 
     manager = ctx.request_context.lifespan_context.okta_auth_manager
 
