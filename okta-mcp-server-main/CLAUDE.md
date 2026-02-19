@@ -47,20 +47,25 @@ All tools live under `src/okta_mcp_server/tools/`, organized by Okta resource do
 
 | Module | Path | Purpose |
 |--------|------|---------|
-| users | `tools/users/users.py` | User CRUD, deactivation, profile attributes |
-| groups | `tools/groups/groups.py` | Group CRUD, membership management |
-| applications | `tools/applications/applications.py` | App CRUD, activation/deactivation |
-| policies | `tools/policies/policies.py` | Policy and policy rule management |
-| system_logs | `tools/system_logs/system_logs.py` | System log retrieval |
+| applications | `tools/applications/applications.py` | App CRUD, user/group assignment |
 | auth_servers | `tools/auth_servers/auth_servers.py` | Authorization server management |
 | authenticators | `tools/authenticators/authenticators.py` | Authenticator configuration |
+| behaviors | `tools/behaviors/behaviors.py` | Behavior detection rule management |
 | brands | `tools/brands/brands.py` | Brand/theme management |
+| devices | `tools/devices/devices.py` | Device management |
+| event_hooks | `tools/event_hooks/event_hooks.py` | Event hook management |
 | factors | `tools/factors/factors.py` | MFA factor management |
+| groups | `tools/groups/groups.py` | Group CRUD, membership management |
 | identity_providers | `tools/identity_providers/identity_providers.py` | IdP configuration |
 | network_zones | `tools/network_zones/network_zones.py` | Network zone management |
+| policies | `tools/policies/policies.py` | Policy and policy rule management |
 | roles | `tools/roles/roles.py` | Role-based access management |
 | schemas | `tools/schemas/schemas.py` | User/group schema management |
+| sessions | `tools/sessions/sessions.py` | Session management |
+| system_logs | `tools/system_logs/system_logs.py` | System log retrieval |
+| threat_insight | `tools/threat_insight/threat_insight.py` | ThreatInsight configuration |
 | trusted_origins | `tools/trusted_origins/trusted_origins.py` | CORS trusted origins |
+| users | `tools/users/users.py` | User CRUD, lifecycle, profile attributes |
 
 ### Tool Registration Pattern
 Every tool function follows this pattern — access the auth manager from context, create an authenticated client, make the API call, return a standardized response:
