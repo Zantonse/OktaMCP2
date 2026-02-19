@@ -318,6 +318,22 @@ class MockEventHook:
 
 
 @dataclass
+class MockInlineHook:
+    """Mock Okta inline hook object."""
+
+    id: str = "inh1abc123"
+    name: str = "Test Inline Hook"
+    type: str = "com.okta.oauth2.tokens.transform"
+    version: str = "1.0.0"
+    status: str = "ACTIVE"
+    channel: dict = None
+
+    def __post_init__(self):
+        if self.channel is None:
+            self.channel = {"type": "HTTP", "version": "1.0.0", "config": {"uri": "https://example.com/hook"}}
+
+
+@dataclass
 class MockDevice:
     """Mock Okta device object."""
 
@@ -327,6 +343,60 @@ class MockDevice:
     platform: str = "MACOS"
     manufacturer: str = "Apple"
     model: str = "MacBook Pro"
+
+
+@dataclass
+class MockDeviceAssurancePolicy:
+    """Mock Okta device assurance policy object."""
+
+    id: str = "dap1abc123"
+    name: str = "Test Device Assurance Policy"
+    platform: str = "MACOS"
+    disk_encryption_type: dict = None
+    os_version: dict = None
+    screen_lock_type: dict = None
+
+    def __post_init__(self):
+        if self.disk_encryption_type is None:
+            self.disk_encryption_type = {"include": ["ALL_INTERNAL_VOLUMES"]}
+        if self.os_version is None:
+            self.os_version = {"minimum": "12.0"}
+        if self.screen_lock_type is None:
+            self.screen_lock_type = {"include": ["BIOMETRIC"]}
+
+
+@dataclass
+class MockFeature:
+    """Mock Okta feature object."""
+
+    id: str = "ftx1abc123"
+    name: str = "Test Feature"
+    description: str = "A test feature flag"
+    status: str = "ENABLED"
+    stage: dict = None
+    type: str = "self-service"
+
+    def __post_init__(self):
+        if self.stage is None:
+            self.stage = {"value": "EA", "state": "OPEN"}
+
+
+@dataclass
+class MockProfileMapping:
+    """Mock Okta profile mapping object."""
+
+    id: str = "prm1abc123"
+    source: dict = None
+    target: dict = None
+    properties: dict = None
+
+    def __post_init__(self):
+        if self.source is None:
+            self.source = {"id": "0oa1abc123", "type": "APP"}
+        if self.target is None:
+            self.target = {"id": "oty1abc123", "type": "USER"}
+        if self.properties is None:
+            self.properties = {"firstName": {"expression": "appuser.firstName"}}
 
 
 @dataclass
@@ -344,6 +414,29 @@ class MockThreatInsightConfiguration:
             self.exclude_zones = []
         if self._links is None:
             self._links = {}
+
+
+@dataclass
+class MockOrgSettings:
+    """Mock Okta organization settings object."""
+
+    id: str = "org1abc123"
+    company_name: str = "Test Org"
+    website: str = "https://test.example.com"
+    phone_number: str = "+1-555-0100"
+    address: dict = None
+
+    def __post_init__(self):
+        if self.address is None:
+            self.address = {"streetAddress": "123 Test St", "city": "San Francisco", "state": "CA"}
+
+
+@dataclass
+class MockOrgContactUser:
+    """Mock Okta organization contact user object."""
+
+    user_id: str = "00u1abc123"
+    contact_type: str = "TECHNICAL"
 
 
 class MockOktaResponse:
@@ -905,6 +998,30 @@ class MockOktaClient:
     async def verify_event_hook(self, event_hook_id):
         return MockEventHook(id=event_hook_id, status="VERIFIED"), MockOktaResponse(), None
 
+    async def list_inline_hooks(self, query_params=None):
+        return [MockInlineHook()], MockOktaResponse(), None
+
+    async def get_inline_hook(self, inline_hook_id):
+        return MockInlineHook(id=inline_hook_id), MockOktaResponse(), None
+
+    async def create_inline_hook(self, body):
+        return MockInlineHook(), MockOktaResponse(), None
+
+    async def update_inline_hook(self, inline_hook_id, body):
+        return MockInlineHook(id=inline_hook_id), MockOktaResponse(), None
+
+    async def delete_inline_hook(self, inline_hook_id):
+        return None, None
+
+    async def activate_inline_hook(self, inline_hook_id):
+        return MockInlineHook(id=inline_hook_id, status="ACTIVE"), MockOktaResponse(), None
+
+    async def deactivate_inline_hook(self, inline_hook_id):
+        return MockInlineHook(id=inline_hook_id, status="INACTIVE"), MockOktaResponse(), None
+
+    async def execute_inline_hook(self, inline_hook_id, body):
+        return {"status": "SUCCESS"}, MockOktaResponse(), None
+
     async def list_devices(self):
         return [MockDevice()], MockOktaResponse(), None
 
@@ -917,6 +1034,40 @@ class MockOktaClient:
     async def list_user_devices(self, user_id):
         return [MockDevice()], MockOktaResponse(), None
 
+    async def list_device_assurance_policies(self):
+        return [MockDeviceAssurancePolicy()], MockOktaResponse(), None
+
+    async def get_device_assurance_policy(self, policy_id):
+        return MockDeviceAssurancePolicy(id=policy_id), MockOktaResponse(), None
+
+    async def create_device_assurance_policy(self, body):
+        return MockDeviceAssurancePolicy(), MockOktaResponse(), None
+
+    async def replace_device_assurance_policy(self, policy_id, body):
+        return MockDeviceAssurancePolicy(id=policy_id), MockOktaResponse(), None
+
+    async def delete_device_assurance_policy(self, policy_id):
+        return None, None
+
+    async def list_features(self):
+        return [MockFeature()], MockOktaResponse(), None
+
+    async def get_feature(self, feature_id):
+        return MockFeature(id=feature_id), MockOktaResponse(), None
+
+    async def update_feature_lifecycle(self, feature_id, lifecycle, mode=None):
+        status = "ENABLED" if lifecycle == "enable" else "DISABLED"
+        return MockFeature(id=feature_id, status=status), MockOktaResponse(), None
+
+    async def list_profile_mappings(self, query_params=None):
+        return [MockProfileMapping()], MockOktaResponse(), None
+
+    async def get_profile_mapping(self, mapping_id):
+        return MockProfileMapping(id=mapping_id), MockOktaResponse(), None
+
+    async def update_profile_mapping(self, mapping_id, body):
+        return MockProfileMapping(id=mapping_id), MockOktaResponse(), None
+
     async def get_current_configuration(self):
         return MockThreatInsightConfiguration(), MockOktaResponse(), None
 
@@ -927,6 +1078,27 @@ class MockOktaClient:
         if "excludeZones" in body:
             config.exclude_zones = body["excludeZones"]
         return config, MockOktaResponse(), None
+
+    async def get_org_settings(self):
+        return MockOrgSettings(), MockOktaResponse(), None
+
+    async def partial_update_org_setting(self, body):
+        settings = MockOrgSettings()
+        if "companyName" in body:
+            settings.company_name = body["companyName"]
+        if "website" in body:
+            settings.website = body["website"]
+        if "phoneNumber" in body:
+            settings.phone_number = body["phoneNumber"]
+        if "address" in body:
+            settings.address = body["address"]
+        return settings, MockOktaResponse(), None
+
+    async def get_org_contact_types(self):
+        return [{"contactType": "TECHNICAL"}, {"contactType": "BILLING"}], MockOktaResponse(), None
+
+    async def get_org_contact_user(self, contact_type):
+        return MockOrgContactUser(contact_type=contact_type), MockOktaResponse(), None
 
 
 class MockOktaAuthManager:

@@ -69,13 +69,18 @@ def main():
     from okta_mcp_server.tools.authenticators import authenticators  # noqa: F401
     from okta_mcp_server.tools.behaviors import behaviors  # noqa: F401
     from okta_mcp_server.tools.brands import brands  # noqa: F401
+    from okta_mcp_server.tools.device_assurance import device_assurance  # noqa: F401
     from okta_mcp_server.tools.devices import devices  # noqa: F401
     from okta_mcp_server.tools.event_hooks import event_hooks  # noqa: F401
     from okta_mcp_server.tools.factors import factors  # noqa: F401
+    from okta_mcp_server.tools.features import features  # noqa: F401
     from okta_mcp_server.tools.groups import groups  # noqa: F401
     from okta_mcp_server.tools.identity_providers import identity_providers  # noqa: F401
+    from okta_mcp_server.tools.inline_hooks import inline_hooks  # noqa: F401
     from okta_mcp_server.tools.network_zones import network_zones  # noqa: F401
+    from okta_mcp_server.tools.org_settings import org_settings  # noqa: F401
     from okta_mcp_server.tools.policies import policies  # noqa: F401
+    from okta_mcp_server.tools.profile_mappings import profile_mappings  # noqa: F401
     from okta_mcp_server.tools.roles import roles  # noqa: F401
     from okta_mcp_server.tools.schemas import schemas  # noqa: F401
     from okta_mcp_server.tools.sessions import sessions  # noqa: F401
