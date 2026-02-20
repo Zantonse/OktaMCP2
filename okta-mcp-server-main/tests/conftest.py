@@ -73,6 +73,24 @@ class MockGroup:
 
 
 @dataclass
+class MockGroupRule:
+    """Mock Okta group rule object."""
+
+    id: str = "0pr1abc123"
+    name: str = "Test Group Rule"
+    type: str = "group_rule"
+    status: str = "ACTIVE"
+    conditions: dict = None
+    actions: dict = None
+
+    def __post_init__(self):
+        if self.conditions is None:
+            self.conditions = {"expression": {"type": "urn:okta:expression:1.0", "value": "user.department==\"Engineering\""}}
+        if self.actions is None:
+            self.actions = {"assignUserToGroups": {"groupIds": ["00g1abc123"]}}
+
+
+@dataclass
 class MockAuthorizationServer:
     """Mock Okta authorization server object."""
 
@@ -366,6 +384,64 @@ class MockDeviceAssurancePolicy:
 
 
 @dataclass
+class MockLinkedObjectDefinition:
+    """Mock Okta linked object definition."""
+
+    primary: dict = None
+    associated: dict = None
+
+    def __post_init__(self):
+        if self.primary is None:
+            self.primary = {"name": "manager", "title": "Manager", "description": "Manager", "type": "USER"}
+        if self.associated is None:
+            self.associated = {
+                "name": "subordinate",
+                "title": "Subordinate",
+                "description": "Subordinate",
+                "type": "USER",
+            }
+
+
+@dataclass
+class MockCustomDomain:
+    """Mock Okta custom domain object."""
+
+    id: str = "cd1abc123"
+    domain: str = "login.example.com"
+    certificate_source_type: str = "OKTA_MANAGED"
+    validation_status: str = "VERIFIED"
+    dns_records: list = None
+
+    def __post_init__(self):
+        if self.dns_records is None:
+            self.dns_records = [
+                {"record_type": "CNAME", "fqdn": "login.example.com", "values": ["example.customdomains.okta.com"]}
+            ]
+
+
+@dataclass
+class MockEmailDomain:
+    """Mock Okta email domain object."""
+
+    id: str = "emd1abc123"
+    domain: str = "mail.example.com"
+    display_name: str = "Example Mail"
+    user_name: str = "noreply"
+    validation_status: str = "VERIFIED"
+
+
+@dataclass
+class MockApiToken:
+    """Mock Okta API token object."""
+
+    id: str = "tok1abc123"
+    name: str = "Test API Token"
+    token_window: str = "UNLIMITED"
+    created: str = "2024-01-01T00:00:00.000Z"
+    last_updated: str = "2024-01-01T00:00:00.000Z"
+
+
+@dataclass
 class MockFeature:
     """Mock Okta feature object."""
 
@@ -437,6 +513,25 @@ class MockOrgContactUser:
 
     user_id: str = "00u1abc123"
     contact_type: str = "TECHNICAL"
+
+
+@dataclass
+class MockRateLimitSettings:
+    """Mock Okta rate limit settings object."""
+
+    rate_limit_notification_emails: list = None
+
+    def __post_init__(self):
+        if self.rate_limit_notification_emails is None:
+            self.rate_limit_notification_emails = ["admin@example.com"]
+
+
+@dataclass
+class MockPerClientRateLimit:
+    """Mock Okta per-client rate limit settings."""
+
+    default_mode: str = "PREVIEW"
+    use_dynamic_enforcement: bool = False
 
 
 class MockOktaResponse:
@@ -517,6 +612,27 @@ class MockOktaClient:
         return group, MockOktaResponse(), None
 
     async def delete_group(self, group_id: str):
+        return None, None
+
+    async def list_group_rules(self, query_params=None):
+        return [MockGroupRule()], MockOktaResponse(), None
+
+    async def get_group_rule(self, rule_id):
+        return MockGroupRule(id=rule_id), MockOktaResponse(), None
+
+    async def create_group_rule(self, body):
+        return MockGroupRule(), MockOktaResponse(), None
+
+    async def update_group_rule(self, rule_id, body):
+        return MockGroupRule(id=rule_id), MockOktaResponse(), None
+
+    async def delete_group_rule(self, rule_id):
+        return None, None
+
+    async def activate_group_rule(self, rule_id):
+        return None, None
+
+    async def deactivate_group_rule(self, rule_id):
         return None, None
 
     async def list_group_users(self, group_id: str, query_params: Optional[Dict] = None):
@@ -773,6 +889,18 @@ class MockOktaClient:
 
     async def list_user_types(self):
         return [MockUserType()], MockOktaResponse(), None
+
+    async def get_user_type(self, type_id):
+        return MockUserType(id=type_id), MockOktaResponse(), None
+
+    async def create_user_type(self, body):
+        return MockUserType(), MockOktaResponse(), None
+
+    async def update_user_type(self, type_id, body):
+        return MockUserType(id=type_id), MockOktaResponse(), None
+
+    async def delete_user_type(self, type_id):
+        return None, None
 
     async def update_user_profile(self, type_id, body):
         return MockUserSchema(), MockOktaResponse(), None
@@ -1099,6 +1227,66 @@ class MockOktaClient:
 
     async def get_org_contact_user(self, contact_type):
         return MockOrgContactUser(contact_type=contact_type), MockOktaResponse(), None
+
+    async def list_linked_object_definitions(self):
+        return [MockLinkedObjectDefinition()], MockOktaResponse(), None
+
+    async def get_linked_object_definition(self, name):
+        return MockLinkedObjectDefinition(), MockOktaResponse(), None
+
+    async def add_linked_object_definition(self, body):
+        return MockLinkedObjectDefinition(), MockOktaResponse(), None
+
+    async def delete_linked_object_definition(self, name):
+        return None, None
+
+    async def get_linked_objects_for_user(self, user_id, relationship_name):
+        return [MockUser()], MockOktaResponse(), None
+
+    async def list_custom_domains(self):
+        return [MockCustomDomain()], MockOktaResponse(), None
+
+    async def get_custom_domain(self, domain_id):
+        return MockCustomDomain(id=domain_id), MockOktaResponse(), None
+
+    async def create_custom_domain(self, body):
+        return MockCustomDomain(), MockOktaResponse(), None
+
+    async def delete_custom_domain(self, domain_id):
+        return None, None
+
+    async def verify_custom_domain(self, domain_id):
+        return MockCustomDomain(id=domain_id, validation_status="VERIFIED"), MockOktaResponse(), None
+
+    async def list_email_domains(self):
+        return [MockEmailDomain()], MockOktaResponse(), None
+
+    async def get_email_domain(self, domain_id):
+        return MockEmailDomain(id=domain_id), MockOktaResponse(), None
+
+    async def create_email_domain(self, body):
+        return MockEmailDomain(), MockOktaResponse(), None
+
+    async def delete_email_domain(self, domain_id):
+        return None, None
+
+    async def get_rate_limit_settings_admin_notifications(self):
+        return MockRateLimitSettings(), MockOktaResponse(), None
+
+    async def get_per_client_rate_limit_settings(self):
+        return MockPerClientRateLimit(), MockOktaResponse(), None
+
+    async def replace_per_client_rate_limit_settings(self, body):
+        return MockPerClientRateLimit(), MockOktaResponse(), None
+
+    async def list_api_tokens(self):
+        return [MockApiToken()], MockOktaResponse(), None
+
+    async def get_api_token(self, token_id):
+        return MockApiToken(id=token_id), MockOktaResponse(), None
+
+    async def revoke_api_token(self, token_id):
+        return None, None
 
 
 class MockOktaAuthManager:

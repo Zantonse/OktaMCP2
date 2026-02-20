@@ -47,29 +47,36 @@ All tools live under `src/okta_mcp_server/tools/`, organized by Okta resource do
 
 | Module | Path | Purpose |
 |--------|------|---------|
+| api_tokens | `tools/api_tokens/api_tokens.py` | API token lifecycle management |
 | applications | `tools/applications/applications.py` | App CRUD, user/group assignment |
 | auth_servers | `tools/auth_servers/auth_servers.py` | Authorization server management |
 | authenticators | `tools/authenticators/authenticators.py` | Authenticator configuration |
 | behaviors | `tools/behaviors/behaviors.py` | Behavior detection rule management |
 | brands | `tools/brands/brands.py` | Brand/theme management |
+| custom_domains | `tools/custom_domains/custom_domains.py` | Custom domain configuration |
 | devices | `tools/devices/devices.py` | Device management |
 | device_assurance | `tools/device_assurance/device_assurance.py` | Device assurance policy management |
+| email_domains | `tools/email_domains/email_domains.py` | Email sender domain management |
 | event_hooks | `tools/event_hooks/event_hooks.py` | Event hook management |
 | features | `tools/features/features.py` | Org feature flag management |
 | factors | `tools/factors/factors.py` | MFA factor management |
+| group_rules | `tools/group_rules/group_rules.py` | Dynamic group membership rules |
 | groups | `tools/groups/groups.py` | Group CRUD, membership management |
 | identity_providers | `tools/identity_providers/identity_providers.py` | IdP configuration |
 | inline_hooks | `tools/inline_hooks/inline_hooks.py` | Inline hook management |
+| linked_objects | `tools/linked_objects/linked_objects.py` | User relationship definitions |
 | network_zones | `tools/network_zones/network_zones.py` | Network zone management |
 | org_settings | `tools/org_settings/org_settings.py` | Organization settings |
 | policies | `tools/policies/policies.py` | Policy and policy rule management |
 | profile_mappings | `tools/profile_mappings/profile_mappings.py` | Profile attribute mappings |
+| rate_limits | `tools/rate_limits/rate_limits.py` | API rate limit settings |
 | roles | `tools/roles/roles.py` | Role-based access management |
 | schemas | `tools/schemas/schemas.py` | User/group schema management |
 | sessions | `tools/sessions/sessions.py` | Session management |
 | system_logs | `tools/system_logs/system_logs.py` | System log retrieval |
 | threat_insight | `tools/threat_insight/threat_insight.py` | ThreatInsight configuration |
 | trusted_origins | `tools/trusted_origins/trusted_origins.py` | CORS trusted origins |
+| user_types | `tools/user_types/user_types.py` | Custom user type management |
 | users | `tools/users/users.py` | User CRUD, lifecycle, profile attributes |
 
 ### Tool Registration Pattern

@@ -35,7 +35,7 @@ This server is an [Model Context Protocol](https://modelcontextprotocol.io/intro
 * **Secure Authentication:** Supports both Device Authorization Grant for interactive use and Private Key JWT for secure, automated server-to-server communication.
 * **Integration with Okta Admin Management APIs:** Leverages the official Okta APIs to ensure secure and reliable interaction with your Okta org.
 * **Extensible Architecture:** Designed to be easily extended with new functionalities and support for additional Okta API endpoints.
-* **Comprehensive Tool Support:** 195 tools across 24 domains — users, groups, applications, policies, security monitoring, and more.
+* **Comprehensive Tool Support:** 228 tools across 31 domains — users, groups, applications, policies, security monitoring, and more.
 
 This MCP server utilizes [Okta's Python SDK](https://github.com/okta/okta-sdk-python) to communicate with the Okta APIs, ensuring a robust and well-supported integration.
 
@@ -220,7 +220,7 @@ Restart your MCP Client (Claude Desktop, VS Code, etc.) and ask it to help you m
 
 ## 🛠️ Supported Tools
 
-The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interact with your Okta tenant.
+The Okta MCP Server provides **228 tools across 31 domains** for LLMs to interact with your Okta tenant.
 
 ### Overview
 
@@ -228,7 +228,9 @@ The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interac
 |----------|--------|------:|-------------|
 | **Identity** | Users | 17 | User CRUD, lifecycle management, password operations |
 | **Identity** | Groups | 10 | Group CRUD, membership management |
+| **Identity** | User Types | 6 | Custom user type management |
 | **Identity** | Schemas | 8 | User profile schema and custom attributes |
+| **Identity** | Linked Objects | 6 | User relationship definitions |
 | **Applications** | Applications | 16 | App CRUD, user/group assignment |
 | **Applications** | Trusted Origins | 8 | CORS trusted origin management |
 | **Security** | Policies | 14 | Policy and policy rule management |
@@ -236,6 +238,7 @@ The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interac
 | **Security** | Authorization Servers | 14 | OAuth server, scopes, claims, policies |
 | **Security** | Authenticators | 8 | Authenticator and method configuration |
 | **Security** | Factors | 6 | MFA factor enrollment and verification |
+| **Security** | Group Rules | 8 | Dynamic group membership rules |
 | **Security** | Device Assurance | 6 | Device posture policy management |
 | **Monitoring** | System Logs | 1 | System log retrieval with filtering |
 | **Monitoring** | Behavior Rules | 8 | Behavior detection rule management |
@@ -246,10 +249,14 @@ The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interac
 | **Infrastructure** | Identity Providers | 8 | External IdP configuration |
 | **Infrastructure** | Inline Hooks | 9 | Logic injection hook management |
 | **Infrastructure** | Profile Mappings | 3 | Attribute mapping management |
+| **Infrastructure** | Custom Domains | 6 | Custom sign-in domain configuration |
+| **Infrastructure** | Email Domains | 5 | Email sender domain management |
 | **Infrastructure** | Devices | 5 | Device inventory and management |
 | **Infrastructure** | Brands | 12 | Brand, theme, and email customization |
 | **Administration** | Features | 4 | Org feature flag management |
 | **Administration** | Org Settings | 4 | Organization configuration |
+| **Governance** | API Tokens | 4 | API token lifecycle management |
+| **Governance** | Rate Limits | 3 | API rate limit settings |
 
 ---
 
@@ -291,6 +298,28 @@ The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interac
 | `list_group_apps` | List apps assigned to a group | `group_id` |
 | `add_user_to_group` | Add a user to a group | `group_id`, `user_id` |
 | `remove_user_from_group` | Remove a user from a group | `group_id`, `user_id` |
+
+#### User Types
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_user_types` | List all user types | _(none)_ |
+| `get_user_type` | Get a user type by ID | `type_id` |
+| `create_user_type` | Create a new user type | `name`, `display_name`, `description` |
+| `update_user_type` | Update a user type | `type_id`, `name`, `display_name`, `description` |
+| `delete_user_type` | Delete a user type (confirmation required) | `type_id` |
+| `confirm_delete_user_type` | Confirm and execute deletion | `type_id`, `confirmation` |
+
+#### Linked Objects
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_linked_object_definitions` | List all linked object definitions | _(none)_ |
+| `get_linked_object_definition` | Get a linked object definition by name | `linked_object_name` |
+| `create_linked_object_definition` | Create a new linked object definition | `primary_name`, `primary_title`, `primary_description`, `associated_name`, `associated_title`, `associated_description` |
+| `delete_linked_object_definition` | Delete a definition (confirmation required) | `linked_object_name` |
+| `confirm_delete_linked_object_definition` | Confirm and execute deletion | `linked_object_name`, `confirmation` |
+| `get_user_linked_objects` | Get linked objects for a user | `user_id`, `relationship_name` |
 
 #### Schemas
 
@@ -435,6 +464,19 @@ The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interac
 | `delete_device_assurance_policy` | Delete a policy (confirmation required) | `policy_id` |
 | `confirm_delete_device_assurance_policy` | Confirm and execute deletion | `policy_id`, `confirmation` |
 
+#### Group Rules
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_group_rules` | List all group rules | `limit`, `after` |
+| `get_group_rule` | Get a group rule by ID | `rule_id` |
+| `create_group_rule` | Create a new group rule | `name`, `expression`, `group_ids` |
+| `update_group_rule` | Update a group rule | `rule_id`, `name`, `expression`, `group_ids` |
+| `delete_group_rule` | Delete a group rule (confirmation required) | `rule_id` |
+| `confirm_delete_group_rule` | Confirm and execute deletion | `rule_id`, `confirmation` |
+| `activate_group_rule` | Activate a group rule | `rule_id` |
+| `deactivate_group_rule` | Deactivate a group rule | `rule_id` |
+
 ---
 
 ### Security Monitoring
@@ -528,6 +570,27 @@ The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interac
 | `get_profile_mapping` | Get a profile mapping by ID | `mapping_id` |
 | `update_profile_mapping` | Update a profile mapping | `mapping_id`, `mapping_config` |
 
+#### Custom Domains
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_custom_domains` | List all custom domains | _(none)_ |
+| `get_custom_domain` | Get a custom domain by ID | `domain_id` |
+| `create_custom_domain` | Create a custom domain | `domain`, `certificate_source_type` |
+| `delete_custom_domain` | Delete a custom domain (confirmation required) | `domain_id` |
+| `confirm_delete_custom_domain` | Confirm and execute deletion | `domain_id`, `confirmation` |
+| `verify_custom_domain` | Verify a custom domain | `domain_id` |
+
+#### Email Domains
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_email_domains` | List all email domains | _(none)_ |
+| `get_email_domain` | Get an email domain by ID | `domain_id` |
+| `create_email_domain` | Create an email domain | `domain`, `display_name`, `user_name` |
+| `delete_email_domain` | Delete an email domain (confirmation required) | `domain_id` |
+| `confirm_delete_email_domain` | Confirm and execute deletion | `domain_id`, `confirmation` |
+
 #### Identity Providers
 
 | Tool | Description | Key Parameters |
@@ -589,6 +652,27 @@ The Okta MCP Server provides **195 tools across 24 domains** for LLMs to interac
 | `update_org_settings` | Update organization settings | `settings` |
 | `get_org_contact_types` | Get available contact types | _(none)_ |
 | `get_org_contact_user` | Get contact user by type | `contact_type` |
+
+---
+
+### Governance
+
+#### API Tokens
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_api_tokens` | List all API tokens | _(none)_ |
+| `get_api_token` | Get an API token by ID | `token_id` |
+| `revoke_api_token` | Revoke an API token (confirmation required) | `token_id` |
+| `confirm_revoke_api_token` | Confirm and execute revocation | `token_id`, `confirmation` |
+
+#### Rate Limits
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `get_rate_limit_settings` | Get rate limit notification settings | _(none)_ |
+| `get_per_client_rate_limit` | Get per-client rate limit settings | _(none)_ |
+| `update_per_client_rate_limit` | Update per-client rate limit settings | `settings` |
 
 ## 🔐 Authentication
 
